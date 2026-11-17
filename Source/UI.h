@@ -1,0 +1,73 @@
+﻿#pragma once
+
+// Todo : コンポジットする部品のインクルードをここへ
+#include  "UITransform.h"
+#include "UIGraphic.h"
+#include "UIText.h"
+#include "UIButton.h"
+#include "UIHoverScaler.h"
+#include "UIFloatingMotion.h"
+
+#include <vector>
+#include <string>	// filenameの指定用
+
+class UIManager;
+
+class UI
+{
+public:
+	UI() = default;
+	virtual ~UI() = default;
+
+	virtual void Init() {};		// 固有の初期化処理
+
+	virtual void Update();
+	virtual void Draw();
+
+	void LoadUIGraph(std::string filename);
+
+	// -- 親子の設定 -- //
+	void AddChild(UI* _child) { mChildren.push_back(_child); }
+	void SetParent(UI* _parent) { mpParent = _parent; }
+
+	// -- レイヤーのアクセサ -- //
+	void SetLayer(int _layer) { mnLayer = _layer; }
+	int GetLayer() { return mnLayer; }
+
+	// -- 有効状態のアクセサ -- //
+	bool IsEnabled();
+	void SetEnabled(bool _enabled) { mbIsEnabled = _enabled; }
+	void ToggleEnabled() { mbIsEnabled = !mbIsEnabled; }
+
+	// -- Moduleの取得 -- //
+	UITransform& GetTransform() { return mTransform; }
+	UIGraphic& GetGraphic() { return mGraphic; }
+	UIText& GetText() { return mText; }
+	UIButton& GetButton() { return mButton; }
+	UIHoverScaler& GetHoverScaler() { return mHoverScaler; }
+	UIFloatingMotion& GetFloatingMotion() { return mFloatingMotion; }
+
+	// -- Managerの取得 -- //
+	UIManager* GetUIManager() { return mpUIManager; }
+
+private:
+	friend class UIManager;
+	UIManager* mpUIManager = nullptr;
+	void Initialize(UIManager* _manager);	// Manager内でUI生成時に通る
+
+private:
+	UI* mpParent = nullptr;
+	std::vector<UI*> mChildren;
+
+	// Todo : コンポジットする部品の実体の宣言をここへ
+	UITransform mTransform;
+	UIGraphic mGraphic;
+	UIText mText;
+	UIButton mButton;
+	UIHoverScaler mHoverScaler;
+	UIFloatingMotion mFloatingMotion;
+
+	bool mbIsEnabled = false;
+
+	int mnLayer = 0;
+};

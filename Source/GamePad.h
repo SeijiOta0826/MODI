@@ -1,0 +1,46 @@
+﻿#pragma once
+#include <DxLib.h>
+
+enum class PadAxis
+{
+	None,
+
+	LeftX,
+	LeftY,
+
+	RightX,
+	RightY,
+
+	TriggerLeft,
+	TriggerRight,
+};
+
+class GamePad
+{
+public:
+	GamePad() = default;
+	~GamePad() = default;
+
+	void Update();
+
+	bool IsConnected() const;
+
+	bool IsPress(int _button) const;
+	bool IsDown(int _button) const;
+	bool IsUp(int _button) const;
+
+	VECTOR GetLeftStick() const;
+	VECTOR GetRightStick() const;
+
+private:
+	int mNowState = 0;
+	int mOldState = 0;
+
+	VECTOR mLeftStick = VGet(0.0f, 0.0f, 0.0f);
+	VECTOR mRightStick = VGet(0.0f, 0.0f, 0.0f);
+
+	float mfLeftTrigger = 0.0f;
+	float mfRightTrigger = 0.0f;
+
+	bool mbConnected = false;
+};
