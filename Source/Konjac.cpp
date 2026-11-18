@@ -36,10 +36,16 @@ void Konjac::Update(float _deltaTime)
 	if (mfBounceTimer > 0.0f)
 		mfBounceTimer -= _deltaTime;
 
-	if (mfCooldown > 0.0f)
-		mfCooldown -= _deltaTime;
+	// -- 次に跳ねるまでの時間を減らす -- //
+	if (mfBounceIntervalTimer > 0.0f)
+		mfBounceIntervalTimer -= _deltaTime;
 
-	TryStartJump();
+	// -- 周期が来たら跳ね上げを試す -- //
+	if (mfBounceIntervalTimer <= 0.0f)
+	{
+		TryStartJump();
+	}
+
 	UpdateJumpCarry(_deltaTime);
 
 	StageBlock::Update(_deltaTime);
@@ -61,9 +67,6 @@ void Konjac::Draw()
 
 void Konjac::TryStartJump()
 {
-	if (mfCooldown > 0.0f)
-		return;
-
 	Player* player = FindPlayerOnTop();
 	if (player == nullptr)
 		return;
@@ -71,7 +74,9 @@ void Konjac::TryStartJump()
 	mpJumpingPlayer = player;
 	mfJumpSpeedY = INITIAL_JUMP_SPEED;
 	mfBounceTimer = BOUNCE_ANIM_TIME;
-	mfCooldown = COOLDOWN_TIME;
+
+	// -- 次に跳ねるまでの周期を設定 -- //
+	mfBounceIntervalTimer = BOUNCE_INTERVAL;
 }
 
 Player* Konjac::FindPlayerOnTop()

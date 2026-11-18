@@ -37,7 +37,7 @@ private:
 	// -- 跳ね上げ -- //
 	static constexpr float INITIAL_JUMP_SPEED = 1500.0f;	// 跳ね上げる初速(px/秒)
 	static constexpr float JUMP_DECEL = 2100.0f;			// 上昇中の減速度(px/秒^2)
-	static constexpr float COOLDOWN_TIME = 0.35f;			// 連続発動を防ぐクールタイム(秒)
+	static constexpr float BOUNCE_INTERVAL = 0.8f;		// 次に跳ねるまでの周期(秒)
 
 	// -- 乗っている判定の許容幅 -- //
 	static constexpr float ON_TOP_RANGE_X_RATE = 0.85f;	// 横方向の許容幅(CELL_SIZE比)
@@ -54,7 +54,7 @@ private:
 	Player* mpJumpingPlayer = nullptr;	// 跳ね上げ中のプレイヤー
 	float   mfJumpSpeedY = 0.0f;		// 現在の上昇速度
 	float   mfBounceTimer = 0.0f;		// 揺れ演出の残り時間
-	float   mfCooldown = 0.0f;			// 再発動までのクールタイム
+	float   mfBounceIntervalTimer = 0.0f;	// 次に跳ねるまでの時間
 
 	int     mnGraphHandle = -1;							// 揺れ描画用の画像ハンドル
 	VECTOR  mvGraphSize = VGet(0.0f, 0.0f, 0.0f);		// 画像サイズ
