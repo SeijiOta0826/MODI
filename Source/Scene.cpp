@@ -1,9 +1,11 @@
-﻿#include"Scene.h"
+﻿#include "Scene.h"
 #include "ObjectManager.h"
 #include "UIManager.h"
 #include "CollisionManager.h"
 #include "EffectManager.h"
 #include "InputManager.h"
+#include "Camera.h"
+#include "CameraShake.h"
 
 Scene::Scene()
 {
@@ -11,6 +13,8 @@ Scene::Scene()
 	mpUIManager = new UIManager();
 	mpCollisionManager = new CollisionManager();
 	mpEffectManager = new EffectManager();
+	mpCamera = new Camera();
+	mpCameraShake = new CameraShake();
 }
 
 Scene::~Scene()
@@ -27,9 +31,16 @@ Scene::~Scene()
 
 	delete mpEffectManager;
 	mpEffectManager = nullptr;
+
+	delete mpCamera;
+	mpCamera = nullptr;
+
+	delete mpCameraShake;
+	mpCameraShake = nullptr;
 }
 
-void Scene::Finalize() {
+void Scene::Finalize()
+{
 	// -- CollisionManagerに登録されているCollider群の解放 -- //
 	if (mpCollisionManager != nullptr)
 	{
@@ -47,10 +58,20 @@ void Scene::Finalize() {
 		mpUIManager->Clear();
 	}
 
-	//EffectManagerの所有するObject群の開放 --//
+	// -- EffectManagerの所有するObject群の解放 -- //
 	if (mpEffectManager != nullptr)
 	{
 		mpEffectManager->Clear();
+	}
+
+	// -- シーン終了時にカメラの揺れをリセット -- //
+	if (mpCameraShake != nullptr)
+	{
+		mpCameraShake->Stop();
+	}
+	if (mpCamera != nullptr)
+	{
+		mpCamera->Initialize();
 	}
 }
 
@@ -87,10 +108,24 @@ void Scene::UpdateOverlay(float _realDelta)
 		mpEffectManager->Update(_realDelta);
 		mpEffectManager->PlayClickRipple();
 	}
+
+	// -- カメラシェイクの計算結果をカメラに反映する（毎フレーム自動実行） -- //
+	if (mpCameraShake != nullptr && mpCamera != nullptr)
+	{
+		mpCameraShake->Update(_realDelta);
+		mpCamera->SetShakeOffset(mpCameraShake->GetOffset());
+	}
 }
+
 void Scene::Draw()
 {
-	// ★1. 背面エフェクト（背景の直後・ステージやキャラの後ろに湯気を描画）
+	// 0. カメラの状態をDxLibへ反映（今後Effekseerを使うときにも自動で同期される）
+	if (mpCamera != nullptr)
+	{
+		mpCamera->Apply();
+	}
+
+	// 1. 背面エフェクト（背景の直後・ステージやキャラの後ろに湯気を描画）
 	if (mpEffectManager != nullptr)
 	{
 		mpEffectManager->DrawBackground();

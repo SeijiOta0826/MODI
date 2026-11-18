@@ -2,6 +2,9 @@
 
 #include "Master.h"
 #include "ResourceManager.h"
+#include "SceneManager.h"
+#include "Scene.h"
+#include "Camera.h"
 
 #include "GameObject.h"
 #include "Transform.h"
@@ -39,17 +42,29 @@ void Graphic::Initialize()
 
 void Graphic::Draw()
 {
-	auto transfrom = mpGameObject->GetModule<Transform>();
-	if (mnGraphHandle == -1 || transfrom == nullptr)
+	auto transform = mpGameObject->GetModule<Transform>();
+	if (mnGraphHandle == -1 || transform == nullptr)
 		return;
 
-	const auto position = transfrom->GetPosition();
-	const auto rotation = transfrom->GetRotation();
-	const auto scale = transfrom->GetScale();
+	// -- カメラの揺れ（または移動）を反映した画面上の描画座標に変換 -- //
+	VECTOR drawPosition = transform->GetPosition();
+	if (Master::mpSceneManager != nullptr)
+	{
+		if (auto* currentScene = Master::mpSceneManager->GetCurrentScene())
+		{
+			if (auto* camera = currentScene->GetCamera())
+			{
+				drawPosition = camera->WorldToScreen(drawPosition);
+			}
+		}
+	}
+
+	const auto rotation = transform->GetRotation();
+	const auto scale = transform->GetScale();
 
 	DrawRotaGraph3(
-		static_cast<int>(position.x),
-		static_cast<int>(position.y),
+		static_cast<int>(drawPosition.x),
+		static_cast<int>(drawPosition.y),
 		static_cast<int>(mvSize.x / 2.0f),
 		static_cast<int>(mvSize.y / 2.0f),
 		scale.x,

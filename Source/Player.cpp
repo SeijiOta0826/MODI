@@ -21,10 +21,11 @@
 #include "GameConfig.h"
 #include "PlayerMath.h"
 
-// -- Sound / Effect -- //
+// -- Sound / Effect / Camera -- //
 #include "SoundManager.h"
 #include "EffectManager.h"
 #include "EffectRespawn.h"
+#include "CameraShake.h"
 
 #include <DxLib.h>
 
@@ -33,9 +34,13 @@ namespace
 	constexpr int N = GameConfig::PLAYER_PIECE_SIZE;
 }
 
-// ============================================================ //
-//  生成
-// ============================================================ //
+namespace
+{
+	// リスポーン時（トゲ接触・落下時）のカメラシェイク設定
+	constexpr float RESPAWN_SHAKE_DURATION = 0.30f; // 揺れる時間（0.3秒）
+	constexpr float RESPAWN_SHAKE_POWER = 12.0f; // 揺れの強さ（12ピクセル）
+}
+
 Player::Player(const VECTOR& initPos)
 	:GameObject()
 {
@@ -232,10 +237,22 @@ void Player::Respawn()
 	mGroundContacts.clear();
 	SetGroundedState(false);
 
-	// リスポーン時のチカチカエフェクトを再生
-	auto scene = Master::mpSceneManager ? Master::mpSceneManager->GetCurrentScene() : nullptr;
-	if (auto effectManager = scene ? scene->GetEffectManager() : nullptr)
-		effectManager->Play<EffectRespawn>(this);
+	UpdatePieceTransforms();
+
+	if (auto* currentScene = Master::mpSceneManager->GetCurrentScene())
+	{
+		// リスポーン時のチカチカエフェクトを再生
+		if (auto* effectManager = currentScene->GetEffectManager())
+		{
+			effectManager->Play<EffectRespawn>(this);
+		}
+
+		// トゲに当たった時・リスポーンした時に画面を揺らす！
+		if (auto* cameraShake = currentScene->GetCameraShake())
+		{
+			cameraShake->Start(RESPAWN_SHAKE_DURATION, RESPAWN_SHAKE_POWER);
+		}
+	}
 
 	SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_RESPAWN);
 }

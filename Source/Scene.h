@@ -1,10 +1,12 @@
 ﻿#pragma once
-#include <algorithm>	// ats::max
+#include <algorithm>	// std::max
 
 class ObjectManager;
 class UIManager;
 class CollisionManager;
 class EffectManager;
+class Camera;
+class CameraShake;
 
 class Scene
 {
@@ -26,6 +28,11 @@ public:
 	CollisionManager* GetCollisionManager() { return mpCollisionManager; }
 	EffectManager* GetEffectManager() { return mpEffectManager; }
 
+	// -- カメラ・カメラシェイクの取得 -- //
+	// 呼び出し例 : Master::mpSceneManager->GetCurrentScene()->GetCameraShake()->Start(0.3f, 12.0f);
+	Camera* GetCamera() const { return mpCamera; }
+	CameraShake* GetCameraShake() const { return mpCameraShake; }
+
 private:
 	void UpdateWorld(float _worldDelta);    // ゲーム世界の更新処理(時間倍率の影響を受ける)
 	void UpdateOverlay(float _realDelta);   // 演出の更新処理(常に実時間)
@@ -36,5 +43,7 @@ private:
 	ObjectManager* mpObjectManager;			// ObjectManager(所有権はScene)
 	UIManager* mpUIManager;
 	CollisionManager* mpCollisionManager;	// CollisionManager(所有権はScene)
-	EffectManager* mpEffectManager;			//EffectManager(所有権はScene)
+	EffectManager* mpEffectManager;			// EffectManager(所有権はScene)
+	Camera* mpCamera;						// Camera(所有権はScene)
+	CameraShake* mpCameraShake;				// CameraShake(所有権はScene)
 };
