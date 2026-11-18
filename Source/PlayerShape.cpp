@@ -1,16 +1,10 @@
-﻿#include "Master.h"
-#include "SceneManager.h"
-#include "Scene.h"
-#include "EffectManager.h"
-#include "EffectTrans.h"
-#include "PlayerMath.h"
-#include "Player.h"
+﻿#include "Player.h"
 
 /* memo :
 * Player の「形状」部分。
 *
 * ■ 2種類の向き
-*   Player基準 : mPieces[column][row] の並び。Playerが回転しても変わらない
+*   Player基準 : mShape[column][row] の並び。Playerが回転しても変わらない
 *   画面基準   : 変形UIに表示する向き。Playerの回転(90度単位)を打ち消したもの
 *   変形UIとのやり取りは画面基準、内部の処理は Player基準 で行う。
 *
@@ -18,6 +12,9 @@
 *   画面基準 → Player基準 に変換
 *   → 基盤ブロックが残っているか → ひとつの塊か → 地形にめり込まないか
 *   → 適用(回転軸も選び直す)
+*
+* ■ 形状データ
+*   形状の本体は Player::mShape。PlayerPiece は mShape に合わせて有効/無効を切り替えるだけ。
 */
 
 // -- Module -- //
@@ -25,6 +22,13 @@
 
 #include "PlayerPiece.h"
 #include "GameConfig.h"
+
+// -- Effect -- //
+#include "Master.h"
+#include "SceneManager.h"
+#include "Scene.h"
+#include "EffectManager.h"
+#include "EffectTrans.h"
 
 #include <DxLib.h>
 #include <cmath>
@@ -130,23 +134,11 @@ void Player::SetShape(int _shapeType)
 	ApplyLocalShape(MakePresetShape(_shapeType));
 }
 
-PlayerShapeMask Player::GetLocalShape() const
-{
-	PlayerShapeMask shape{};
-
-	for (int r = 0; r < N; ++r)
-	{
-		for (int c = 0; c < N; ++c)
-		{
-			shape[c][r] = (mPieces[c][r] != nullptr && mPieces[c][r]->IsActive());
-		}
-	}
-
-	return shape;
-}
-
 void Player::ApplyLocalShape(const PlayerShapeMask& _shape)
 {
+	mShape = _shape;
+
+	// 見た目・センサー用のPieceを形状に合わせる
 	for (int r = 0; r < N; ++r)
 	{
 		for (int c = 0; c < N; ++c)
@@ -158,16 +150,15 @@ void Player::ApplyLocalShape(const PlayerShapeMask& _shape)
 
 	// 形が変わったので回転軸を選び直す(見た目の位置は変わらない)
 	RecalculateRotationPivot();
+
+	// 新しく有効になったPieceも正しい位置に置く
+	UpdatePieceTransforms();
 }
 
 int Player::GetQuarterTurns() const
 {
-	auto transform = GetTransform();
-	if (!transform)
-		return 0;
-
 	// 一番近い90度単位に丸める
-	int turns = static_cast<int>(std::lroundf(transform->GetRotation().z / (DX_PI_F / 2.0f)));
+	int turns = static_cast<int>(std::lroundf(mpTransform->GetRotation().z / (DX_PI_F / 2.0f)));
 
 	turns %= 4;
 	if (turns < 0)
@@ -185,9 +176,6 @@ void Player::BeginShapeEdit()
 		return;
 
 	mbIsShapeEditing = true;
-	mbIsToppling = false;
-
-	UpdatePieceTransforms();
 	SelectBaseCell();
 }
 
@@ -199,7 +187,7 @@ void Player::EndShapeEdit()
 PlayerShapeMask Player::GetScreenShape() const
 {
 	// Player基準 → 画面基準
-	return RotateShape(GetLocalShape(), GetQuarterTurns());
+	return RotateShape(mShape, GetQuarterTurns());
 }
 
 void Player::GetScreenBaseCell(int& _column, int& _row) const
@@ -223,62 +211,23 @@ ShapeChangeResult Player::TryChangeShapeFromScreen(const PlayerShapeMask& _scree
 		return ShapeChangeResult::Disconnected;
 
 	// -- 4. 今の位置・回転のまま地形にめり込まないか -- //
-	auto transform = GetTransform();
-	if (!transform)
-		return ShapeChangeResult::Overlapping;
-
 	const PoseCollisionResult collision =
-		TestCollisionAtPose(transform->GetPosition(), transform->GetRotation().z, local);
+		TestCollisionAtPose(mpTransform->GetPosition(), mpTransform->GetRotation().z, local, CollectBlocks());
 
 	if (!IsPoseAcceptable(collision))
 		return ShapeChangeResult::Overlapping;
 
 	// -- 5. 適用 (各Pieceのワールド位置は変わらないので、基盤ブロックも動かない) -- //
 	ApplyLocalShape(local);
-	UpdatePieceTransforms();
-	// -- 6. 変形成功エフェクト（EffectTrans）を全ピースの外側のフチから出す -- //
+
+	// -- 6. 変形成功エフェクト(EffectTrans)を全セルの外側のフチから出す -- //
 	auto scene = Master::mpSceneManager ? Master::mpSceneManager->GetCurrentScene() : nullptr;
-	auto effectManager = scene ? scene->GetEffectManager() : nullptr;
-	if (effectManager && transform)
+	if (auto effectManager = scene ? scene->GetEffectManager() : nullptr)
 	{
-		const float rotZ = transform->GetRotation().z;
-		const float halfCell = GameConfig::CELL_SIZE * 0.5f;
-		struct EdgeDir { int dc; int dr; float localX; float localY; float localAngle; };
-		const EdgeDir dirs[4] = {
-			{  0, -1,  0.0f, -halfCell, -DX_PI_F * 0.5f }, // 上
-			{  0,  1,  0.0f,  halfCell,  DX_PI_F * 0.5f }, // 下
-			{ -1,  0, -halfCell,  0.0f,  DX_PI_F        }, // 左
-			{  1,  0,  halfCell,  0.0f,  0.0f           }  // 右
-		};
-		for (int r = 0; r < GameConfig::PLAYER_PIECE_SIZE; ++r)
-		{
-			for (int c = 0; c < GameConfig::PLAYER_PIECE_SIZE; ++c)
-			{
-				auto piece = mPieces[c][r];
-				if (!piece || !piece->IsActive())
-					continue;
-				auto pieceTransform = piece->GetModule<Transform>();
-				if (!pieceTransform)
-					continue;
-				const VECTOR piecePos = pieceTransform->GetPosition();
-				for (const auto& dir : dirs)
-				{
-					const int nc = c + dir.dc;
-					const int nr = r + dir.dr;
-					if (nc >= 0 && nc < GameConfig::PLAYER_PIECE_SIZE &&
-						nr >= 0 && nr < GameConfig::PLAYER_PIECE_SIZE &&
-						mPieces[nc][nr] != nullptr && mPieces[nc][nr]->IsActive())
-					{
-						continue;
-					}
-					const VECTOR edgeOffset = PlayerMath::RotateOffset(VGet(dir.localX, dir.localY, 0.0f), rotZ);
-					const VECTOR spawnPos = VAdd(piecePos, edgeOffset);
-					const float outwardAngle = dir.localAngle + rotZ;
-					effectManager->Play<EffectTrans>(spawnPos.x, spawnPos.y, outwardAngle);
-				}
-			}
-		}
+		for (const OuterEdge& edge : CollectOuterEdges())
+			effectManager->Play<EffectTrans>(edge.mvPosition.x, edge.mvPosition.y, edge.mfOutwardAngle);
 	}
+
 	return ShapeChangeResult::Success;
 }
 
@@ -299,15 +248,10 @@ void Player::SelectBaseCell()
 	{
 		for (int c = 0; c < N; ++c)
 		{
-			auto piece = mPieces[c][r];
-			if (!piece || !piece->IsActive())
+			if (!mShape[c][r])
 				continue;
 
-			auto pieceTransform = piece->GetModule<Transform>();
-			if (!pieceTransform)
-				continue;
-
-			const VECTOR pos = pieceTransform->GetPosition();
+			const VECTOR pos = GetCellWorldPosition(c, r);
 			const float distX = std::fabsf(pos.x - com.x);
 
 			const bool isLower = pos.y > bestY + BASE_SAME_HEIGHT_EPS;	// 画面座標はyが下向き

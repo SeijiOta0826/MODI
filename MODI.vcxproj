@@ -64,6 +64,7 @@
     <ClCompile Include="Source\Player.cpp" />
     <ClCompile Include="Source\PlayerController.cpp" />
     <ClCompile Include="Source\PlayerGround.cpp" />
+    <ClCompile Include="Source\PlayerCollision.cpp" />
     <ClCompile Include="Source\PlayerPiece.cpp" />
     <ClCompile Include="Source\PlayerPieceUI.cpp" />
     <ClCompile Include="Source\PlayerRotation.cpp" />

@@ -16,6 +16,4 @@ private:
 
 private:
 	Player* mpPlayer = nullptr;
-	float mfPrevRotation = 0.0f;
-	float mfRepeatTimer = 0.0f;
 };

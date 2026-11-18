@@ -1,11 +1,15 @@
 ﻿#pragma once
 #include "GameObject.h"
 
-#include <DxLib.h>	// VECTOR用
-
 class Player;
-class CollisionManager;
 
+/* memo :
+* Player の1マス分の「見た目」と「センサー」。
+*   ・描画 (Graphic)
+*   ・他オブジェクトに Player として検知されるための当たり判定 (Collider / Tag::PLAYER_CELL)
+* 座標・有効状態は Player が毎フレーム設定する。
+* Player 自身の衝突処理(押し戻し・接地)には使われない(Player::QueryPose が担当)。
+*/
 class PlayerPiece : public GameObject
 {
 public:
@@ -14,17 +18,10 @@ public:
 
 	void Init() override;
 	void InitComponent() override;
-	void Update(float _deltaTime) override;
-	void Draw() override;
-	void ResolveCollision() override;
 
 	// -- 有効状態のアクセサ -- //
 	void SetActive(bool _active);
 	bool IsActive() const { return mbIsActive; }
-
-	// -- Playerからの相対座標アクセサ -- //
-	void SetLocalPosition(const VECTOR& _pos) { mvLocalPosition = _pos; }
-	const VECTOR& GetLocalPosition() const { return mvLocalPosition; }
 
 	Player* GetPlayer() const { return mpPlayer; }
 
@@ -36,6 +33,5 @@ protected:
 private:
 	Player* mpPlayer = nullptr;	// ハブとなるPlayerのポインタ
 
-	VECTOR mvLocalPosition = VGet(0.0f, 0.0f, 0.0f);		// Playerからの相対座標
 	bool mbIsActive = false;	// Pieceの有効状態を示す
 };

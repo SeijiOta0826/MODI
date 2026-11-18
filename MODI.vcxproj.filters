@@ -294,6 +294,9 @@
     <ClCompile Include="Source\PlayerGround.cpp">
       <Filter>ソース ファイル\GameObject\Character\Player</Filter>
     </ClCompile>
+    <ClCompile Include="Source\PlayerCollision.cpp">
+      <Filter>ソース ファイル\GameObject\Character\Player</Filter>
+    </ClCompile>
     <ClCompile Include="Source\PlayerPiece.cpp">
       <Filter>ソース ファイル\GameObject\Character\Player</Filter>
     </ClCompile>

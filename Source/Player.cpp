@@ -1,110 +1,89 @@
 ﻿#include "Player.h"
 
+/* memo :
+* Player の「基本」部分。
+*   生成(Init) → 毎フレームの更新(Update) → セル座標・重心・外側のフチ → Pieceの同期 → リスポーン
+* 当たり判定・回転・接地・形状変更は別ファイル(Player.h の memo 参照)。
+*/
+
 // -- Module -- //
 #include "Transform.h"
 #include "Gravity.h"
 
-// -- Manager  -- //
+// -- Piece生成用 -- //
 #include "Master.h"
 #include "SceneManager.h"
 #include "Scene.h"
 #include "ObjectManager.h"
-
-// -- Object -- //
 #include "PlayerPiece.h"
 
-// -- Config  -- //
 #include "ScreenConfig.h"
 #include "GameConfig.h"
 #include "PlayerMath.h"
-#include "Debug.h"
 
 // -- Sound / Effect -- //
 #include "SoundManager.h"
+#include "EffectManager.h"
 #include "EffectRespawn.h"
 
-// -- Library -- //
 #include <DxLib.h>
-#include <cmath>
 
-/* memo :
-* Player の「基本」部分。
-*   生成(Init) → 毎フレームの更新(Update) → Pieceの座標同期 → リスポーン
-* 回転・接地・形状変更は別ファイル(Player.h の memo 参照)。
-*/
+namespace
+{
+	constexpr int N = GameConfig::PLAYER_PIECE_SIZE;
+}
 
+// ============================================================ //
+//  生成
+// ============================================================ //
 Player::Player(const VECTOR& initPos)
 	:GameObject()
 {
 	mvRespawnPos = initPos;
-	if (auto transform = GetModule<Transform>())
-		transform->SetPosition(initPos);
 }
 
 void Player::Init()
 {
 	SetTag(Tag::PLAYER);
-	GetTransform()->SetPosition(mvRespawnPos);
+	mpTransform->SetPosition(mvRespawnPos);
 
 	mController.Initialize(this);
 
-	SetupPieces();
-	SetShape(0);	// 初期形状 : T字
-
-	UpdatePieceTransforms();
+	CreatePieces();
+	SetShape(0);	// 初期形状 : ぼっち(Pieceの同期もここで行われる)
 }
 
 void Player::InitComponent()
 {
-	AddModule<Transform>();
-	AddModule<Gravity>();
+	// AddModule の戻り値を覚えておき、毎回 GetModule で探さずに済むようにする
+	mpTransform = AddModule<Transform>();
+	mpGravity = AddModule<Gravity>();
 }
 
-void Player::SetupPieces()
-{
-	for (int row = 0; row < GameConfig::PLAYER_PIECE_SIZE; ++row)
-	{
-		for (int column = 0; column < GameConfig::PLAYER_PIECE_SIZE; ++column)
-		{
-			CreatePiece(column, row);
-		}
-	}
-}
-
-void Player::CreatePiece(int _column, int _row)
+void Player::CreatePieces()
 {
 	auto scene = Master::mpSceneManager ? Master::mpSceneManager->GetCurrentScene() : nullptr;
 	auto objectManager = scene ? scene->GetObjectManager() : nullptr;
 	if (!objectManager)
 		return;
 
-	auto playerPiece = objectManager->CreateObject<PlayerPiece>(this);
-	if (!playerPiece)
-		return;
-
-	mPieces[_column][_row] = playerPiece;
-
-	// 仮の相対座標 : 中央マス(1,1)を原点とする
-	// (SetShape → RecalculateRotationPivot で回転軸Piece基準に置き直される)
-	playerPiece->SetLocalPosition(VGet(
-		static_cast<float>(_column - 1) * GameConfig::CELL_SIZE,
-		static_cast<float>(_row - 1) * GameConfig::CELL_SIZE,
-		0.0f
-	));
+	for (int r = 0; r < N; ++r)
+	{
+		for (int c = 0; c < N; ++c)
+		{
+			mPieces[c][r] = objectManager->CreateObject<PlayerPiece>(this);
+		}
+	}
 }
 
+// ============================================================ //
+//  毎フレームの更新
+// ============================================================ //
 void Player::Update(float _deltaTime)
 {
-	if (_deltaTime <= 0.0f)
-		return;
-
 	// 変形UIを開いている間は停止(基盤ブロックを動かさないため)
-	if (mbIsShapeEditing)
-	{
-		UpdatePieceTransforms();
-		// Debug::Print("Shape Editing...");
+	if (_deltaTime <= 0.0f || mbIsShapeEditing)
 		return;
-	}
 
 	if (mfInputCooldown > 0.0f)
 		mfInputCooldown -= _deltaTime;
@@ -113,53 +92,29 @@ void Player::Update(float _deltaTime)
 
 	mController.Update();			// 入力 → 回転
 	GameObject::Update(_deltaTime);	// 重力などのModule
+
+	// このあと CollisionManager が Piece の当たり判定を見るので、ここで位置を合わせておく
 	UpdatePieceTransforms();
-
-	PrintDebugInfo();
 }
 
-void Player::Draw()
+// ============================================================ //
+//  セル座標・重心・外側のフチ
+// ============================================================ //
+VECTOR Player::GetCellLocalPosition(int _column, int _row) const
 {
-	GameObject::Draw();
+	return VGet(
+		static_cast<float>(_column - mnPivotColumn) * GameConfig::CELL_SIZE,
+		static_cast<float>(_row - mnPivotRow) * GameConfig::CELL_SIZE,
+		0.0f
+	);
 }
 
-void Player::PrintDebugInfo()
+VECTOR Player::GetCellWorldPosition(int _column, int _row) const
 {
-	auto transform = GetTransform();
-	if (!transform)
-		return;
-
-	int deg = static_cast<int>(std::roundf(transform->GetRotation().z * 180.0f / DX_PI_F)) % 360;
-	if (deg < 0)
-		deg += 360;
-}
-
-void Player::UpdatePieceTransforms()
-{
-	auto transform = GetTransform();
-	if (!transform)
-		return;
-
-	const VECTOR playerPos = transform->GetPosition();
-	const float rotZ = transform->GetRotation().z;
-
-	for (int r = 0; r < GameConfig::PLAYER_PIECE_SIZE; ++r)
-	{
-		for (int c = 0; c < GameConfig::PLAYER_PIECE_SIZE; ++c)
-		{
-			auto piece = mPieces[c][r];
-			if (!piece || !piece->IsActive())
-				continue;
-
-			auto pieceTransform = piece->GetModule<Transform>();
-			if (!pieceTransform)
-				continue;
-
-			pieceTransform->SetPosition(
-				PlayerMath::LocalToWorld(playerPos, rotZ, piece->GetLocalPosition()));
-			pieceTransform->SetRotation(VGet(0.0f, 0.0f, rotZ));
-		}
-	}
+	return PlayerMath::LocalToWorld(
+		mpTransform->GetPosition(),
+		mpTransform->GetRotation().z,
+		GetCellLocalPosition(_column, _row));
 }
 
 VECTOR Player::CalculateCenterOfMass() const
@@ -167,36 +122,93 @@ VECTOR Player::CalculateCenterOfMass() const
 	VECTOR sum = VGet(0.0f, 0.0f, 0.0f);
 	int activeCount = 0;
 
-	for (int r = 0; r < GameConfig::PLAYER_PIECE_SIZE; ++r)
+	for (int r = 0; r < N; ++r)
 	{
-		for (int c = 0; c < GameConfig::PLAYER_PIECE_SIZE; ++c)
+		for (int c = 0; c < N; ++c)
 		{
-			auto piece = mPieces[c][r];
-			if (!piece || !piece->IsActive())
+			if (!mShape[c][r])
 				continue;
 
-			if (auto pieceTransform = piece->GetModule<Transform>())
+			sum = VAdd(sum, GetCellWorldPosition(c, r));
+			++activeCount;
+		}
+	}
+
+	// 有効セルが無いときは Player の座標
+	if (activeCount == 0)
+		return mpTransform->GetPosition();
+
+	return VScale(sum, 1.0f / static_cast<float>(activeCount));
+}
+
+std::vector<OuterEdge> Player::CollectOuterEdges() const
+{
+	std::vector<OuterEdge> edges;
+
+	const float rotZ = mpTransform->GetRotation().z;
+	const float halfCell = GameConfig::CELL_SIZE * 0.5f;
+
+	// 4方向(上・下・左・右)のマスのずれ / セル中心からフチまでのずれ / 外向きの角度(ローカル)
+	struct EdgeDir { int dc; int dr; float localX; float localY; float localAngle; };
+	const EdgeDir dirs[4] = {
+		{  0, -1,  0.0f, -halfCell, -DX_PI_F * 0.5f }, // 上のフチ
+		{  0,  1,  0.0f,  halfCell,  DX_PI_F * 0.5f }, // 下のフチ
+		{ -1,  0, -halfCell,  0.0f,  DX_PI_F        }, // 左のフチ
+		{  1,  0,  halfCell,  0.0f,  0.0f           }  // 右のフチ
+	};
+
+	for (int r = 0; r < N; ++r)
+	{
+		for (int c = 0; c < N; ++c)
+		{
+			if (!mShape[c][r])
+				continue;
+
+			const VECTOR cellPos = GetCellWorldPosition(c, r);
+
+			for (const auto& dir : dirs)
 			{
-				sum = VAdd(sum, pieceTransform->GetPosition());
-				++activeCount;
+				// 隣にセルがあるなら内側(つなぎ目)なので出さない
+				const int nc = c + dir.dc;
+				const int nr = r + dir.dr;
+				if (nc >= 0 && nc < N && nr >= 0 && nr < N && mShape[nc][nr])
+					continue;
+
+				// プレイヤーの回転に合わせて、フチの座標と外向きの角度を計算
+				OuterEdge edge;
+				edge.mvPosition = VAdd(cellPos, PlayerMath::RotateOffset(VGet(dir.localX, dir.localY, 0.0f), rotZ));
+				edge.mfOutwardAngle = dir.localAngle + rotZ;
+				edges.push_back(edge);
 			}
 		}
 	}
 
-	if (activeCount > 0)
-		return VScale(sum, 1.0f / static_cast<float>(activeCount));
-
-	// 有効Pieceが無いときは Player の座標
-	if (auto transform = GetTransform())
-		return transform->GetPosition();
-
-	return sum;
+	return edges;
 }
 
-Transform* Player::GetTransform() const
+// ============================================================ //
+//  Pieceの同期 (見た目・センサーを Player の姿勢に合わせる)
+// ============================================================ //
+void Player::UpdatePieceTransforms()
 {
-	// GetModule が非constのため、const関数からも呼べるようにここだけでキャストする
-	return const_cast<Player*>(this)->GetModule<Transform>();
+	const VECTOR rotation = VGet(0.0f, 0.0f, mpTransform->GetRotation().z);
+
+	for (int r = 0; r < N; ++r)
+	{
+		for (int c = 0; c < N; ++c)
+		{
+			auto piece = mPieces[c][r];
+			if (!piece || !mShape[c][r])
+				continue;
+
+			auto pieceTransform = piece->GetModule<Transform>();
+			if (!pieceTransform)
+				continue;
+
+			pieceTransform->SetPosition(GetCellWorldPosition(c, r));
+			pieceTransform->SetRotation(rotation);
+		}
+	}
 }
 
 // ============================================================ //
@@ -204,33 +216,26 @@ Transform* Player::GetTransform() const
 // ============================================================ //
 void Player::CheckRespawn()
 {
-	auto transform = GetTransform();
-	if (!transform)
-		return;
-
-	if (transform->GetPosition().y > ScreenConfig::SCREEN_HEIGHT)
+	if (mpTransform->GetPosition().y > ScreenConfig::SCREEN_HEIGHT)
 		Respawn();
 }
 
 void Player::Respawn()
 {
-	auto transform = GetTransform();
-	if (!transform)
-		return;
-
+	// 形状を先に戻す(回転軸が選び直されて原点が動くので、位置はそのあとで上書きする)
 	SetShape(0);
-	transform->SetPosition(mvRespawnPos);
-	transform->SetRotation(VGet(0.0f, 0.0f, 0.0f));
-	mbIsToppling = false;
+	mpTransform->SetPosition(mvRespawnPos);
+	mpTransform->SetRotation(VGet(0.0f, 0.0f, 0.0f));
+	UpdatePieceTransforms();
+
 	mfInputCooldown = 0.0f;
+	mGroundContacts.clear();
 	SetGroundedState(false);
 
-	UpdatePieceTransforms();
-	//リスポーン時のチカチカエフェクトを再生
-	Master::mpSceneManager
-		->GetCurrentScene()
-		->GetEffectManager()
-		->Play<EffectRespawn>(this);
+	// リスポーン時のチカチカエフェクトを再生
+	auto scene = Master::mpSceneManager ? Master::mpSceneManager->GetCurrentScene() : nullptr;
+	if (auto effectManager = scene ? scene->GetEffectManager() : nullptr)
+		effectManager->Play<EffectRespawn>(this);
 
 	SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_RESPAWN);
 }

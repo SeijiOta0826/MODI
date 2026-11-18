@@ -1,18 +1,30 @@
 ﻿#include "Player.h"
-#include "PlayerPiece.h"
 
 /* memo :
-* Player の「衝突・接地」部分。
+* Player の「押し戻し・接地」部分。
 *
-* ■ 押し戻し
-*   各Pieceが報告した押し戻し量を1つにまとめて Player を動かす。
-*   (Pieceごとに動かすとバラバラになるため、ハブの Player で一括処理)
+* ■ 押し戻し (ResolvePenetration)
+*   QueryPose で今の姿勢のめり込みを調べ、押し出す。これを最大 MAX_RESOLVE_ITERATIONS 回繰り返す。
+*   (1回で押し切ると行き過ぎて逆にめり込むことがあるので、少しずつ押して確認し直す = 反復解決)
+*
+* ■ 接地プローブ (UpdateGroundContacts)
+*   押し戻しが終わるとめり込みはほぼ0になり、「床に触れている」かどうかが分からなくなる。
+*   そこで、少しだけ下(GROUND_PROBE_DISTANCE)にずらした位置で QueryPose し、
+*   床に当たれば「その床に乗っている」とみなす。
 *
 * ■ 接地・倒れ込み
-*   下から支えている接触(床)を集めて判断する。
+*   接地プローブで見つけた床接触の「支えている範囲」から判断する。
+*   (平らに置かれたセルは下の辺全体、傾いたセルは角の1点で床を支えている)
 *     床に触れていない       → 空中
-*     重心が支えの範囲内     → 安定して接地
-*     重心が支えの範囲外     → 支点まわりに少し倒す(毎フレーム繰り返して倒れ込む)
+*     重心が支えの範囲内     → 安定して接地(90度単位にほぼ揃っていれば、床に触れている点を中心にきっちり揃える)
+*     重心が支えの範囲外     → 倒れる側の支えの端を支点に少し倒す(毎フレーム繰り返して倒れ込む)
+*
+* ■ 倒れ込みの行き過ぎ防止
+*   1回に TOPPLE_SPEED_DEG ずつ倒すと、つり合う角度(例 : L字が2つの角で立つ135度)を飛び越して
+*   反対側に倒れ、また戻る…を繰り返してガタガタ震える(ジッター)。
+*   そこで、倒した先で地形にめり込むなら「ぶつかる直前の角度」を二分探索で探してそこで止める。
+*   次のフレームで2点目の支えが見つかり、安定して接地する。
+*   少しも倒れられない(何かにもたれている)ときは、そこで止まっているとみなして接地扱いにする。
 */
 
 // -- Module -- //
@@ -22,24 +34,32 @@
 #include "GameConfig.h"
 #include "PlayerMath.h"
 
-#include "SoundManager.h"
+// -- Effect -- //
+#include "Master.h"
+#include "SceneManager.h"
+#include "Scene.h"
+#include "EffectManager.h"
+#include "EffectFall.h"
 
 #include <DxLib.h>
 #include <cmath>
 #include <cfloat>
-
-#include "EffectManager.h"
-#include "EffectFall.h"
-
-#include "Master.h"
-#include "Scene.h"
-
+#include <algorithm>	// std::sort
+#include <iterator>		// std::begin, std::end
 
 namespace
 {
 	constexpr float RIGHT_ANGLE = DX_PI_F / 2.0f;		// 90度
 	constexpr float NEARLY_FLAT_TOLERANCE = 0.08f;		// 90度単位から何ラジアン以内なら「平ら」とみなすか
 	constexpr float MULTI_SUPPORT_WIDTH = GameConfig::CELL_SIZE * 0.7f;	// これ以上離れた2点で支えていれば安定
+
+	constexpr int MAX_RESOLVE_ITERATIONS = 4;		// 押し戻しを繰り返す最大回数
+	constexpr float GROUND_PROBE_DISTANCE = 2.0f;	// 接地プローブで下にずらす距離
+
+	constexpr int TOPPLE_SEARCH_ITERATIONS = 6;			// 倒れ込みで「ぶつかる直前」を探す二分探索の回数
+	constexpr float TOPPLE_PENETRATION_TOLERANCE = 1.0f;	// 倒れ込みで許すめり込みの増加量(px)
+	constexpr float MIN_TOPPLE_STEP = 0.1f * DX_PI_F / 180.0f;	// これより小さくしか倒れられないなら「倒れられない」
+	const VECTOR HALF_CELL_SIZE = VGet(GameConfig::CELL_SIZE / 2.0f, GameConfig::CELL_SIZE / 2.0f, 0.0f);
 
 	// 角度が 90度単位(0, 90, 180, 270度)にほぼ一致しているか
 	bool IsNearlyFlat(float _rotZ)
@@ -51,184 +71,186 @@ namespace
 		return modAngle < NEARLY_FLAT_TOLERANCE || modAngle > (RIGHT_ANGLE - NEARLY_FLAT_TOLERANCE);
 	}
 
-	// 支えている接触のうち、重心に一番近いものの位置(=倒れ込みの支点)
-	VECTOR FindClosestContactPosition(const std::vector<PieceContact>& _contacts, const VECTOR& _point)
+	// 各方向(+X, -X, +Y, -Y)で一番大きい押し戻しを採用して合計する
+	// (同じ方向の押し戻しを足し合わせると押し戻しすぎるため)
+	VECTOR CombineCorrections(const std::vector<BodyContact>& _contacts)
 	{
-		VECTOR closest = _contacts[0].mvPieceWorldPos;
-		float closestDistSq = FLT_MAX;
+		float minX = 0.0f, maxX = 0.0f;
+		float minY = 0.0f, maxY = 0.0f;
+
+		for (const BodyContact& contact : _contacts)
+		{
+			const VECTOR& c = contact.mvCorrection;
+			if (c.x > maxX) maxX = c.x;
+			if (c.x < minX) minX = c.x;
+			if (c.y > maxY) maxY = c.y;
+			if (c.y < minY) minY = c.y;
+		}
+
+		return VGet(maxX + minX, maxY + minY, 0.0f);
+	}
+
+	// セルが床を支えている範囲(一番低いところの左端・右端)を _contact に書き込む
+	//   ほぼ平ら(90度単位からのズレが小さい) : 下の辺全体(低い頂点2つ)
+	//   傾いている                           : 一番低い角の1点
+	void SetSupportRange(float _rotZ, BodyContact& _contact)
+	{
+		VECTOR vertices[4];
+		Box2D::Make(_contact.mvCellWorldPos, HALF_CELL_SIZE, _rotZ).GetVertices(vertices);
+
+		// 低い順(yが大きい順。画面座標はyが下向き)に並べる
+		std::sort(std::begin(vertices), std::end(vertices),
+			[](const VECTOR& _a, const VECTOR& _b) { return _a.y > _b.y; });
+
+		const int supportCount = IsNearlyFlat(_rotZ) ? 2 : 1;
+
+		_contact.mvSupportLeft = vertices[0];
+		_contact.mvSupportRight = vertices[0];
+		for (int i = 1; i < supportCount; ++i)
+		{
+			if (vertices[i].x < _contact.mvSupportLeft.x)  _contact.mvSupportLeft = vertices[i];
+			if (vertices[i].x > _contact.mvSupportRight.x) _contact.mvSupportRight = vertices[i];
+		}
+	}
+
+	// 全接触の支えの端のうち、x が _x に一番近い点
+	VECTOR FindClosestSupportPoint(const std::vector<BodyContact>& _contacts, float _x)
+	{
+		VECTOR closest = _contacts[0].mvSupportLeft;
+		float closestDist = FLT_MAX;
 
 		for (const auto& contact : _contacts)
 		{
-			const float dx = contact.mvPieceWorldPos.x - _point.x;
-			const float dy = contact.mvPieceWorldPos.y - _point.y;
-			const float distSq = dx * dx + dy * dy;
-
-			if (distSq < closestDistSq)
+			for (const VECTOR& point : { contact.mvSupportLeft, contact.mvSupportRight })
 			{
-				closestDistSq = distSq;
-				closest = contact.mvPieceWorldPos;
+				const float dist = std::fabsf(point.x - _x);
+				if (dist < closestDist)
+				{
+					closestDist = dist;
+					closest = point;
+				}
 			}
 		}
-
 		return closest;
 	}
 }
 
 // ============================================================ //
-//  衝突処理の前後
+//  衝突処理 (全オブジェクトの Update が終わった後に呼ばれる)
 // ============================================================ //
-void Player::BeginCollisionResolution()
-{
-	GameObject::BeginCollisionResolution();
-
-	mCollisionCorrections.clear();
-	mPieceContacts.clear();
-}
-
 void Player::EndCollisionResolution()
 {
 	GameObject::EndCollisionResolution();
 
-	// ★修正：変形UIを開いている間も、StageBlockへのめり込み押し戻し(ApplyCollisionCorrection)だけは行う！
-	// （これで万が一外力で押されても絶対にStageBlockをすり抜けなくなります）
-	ApplyCollisionCorrection();		// 1. めり込みを押し戻す
-	UpdatePieceTransforms();
+	// ブロックの一覧はこの処理の間は変わらないので、1回だけ集めて使い回す
+	const std::vector<BlockBox> blocks = CollectBlocks();
+
+	// 変形UIを開いている間も、めり込みの押し戻しだけは行う
+	// (万が一外力で押されてもステージブロックをすり抜けないように)
+	ResolvePenetration(blocks);
 
 	// 変形UIを開いている間は接地・倒れ込み回転は行わない
-	if (mbIsShapeEditing)
+	if (!mbIsShapeEditing)
 	{
-		return;
+		UpdateGroundContacts(blocks);
+		ProcessGroundAndTopple(blocks);
 	}
 
-	ProcessGroundAndTopple();		// 2. 接地 / 倒れ込み
+	// 接地・倒れ込みは mShape から計算するので、Pieceの同期は最後に1回だけでよい
 	UpdatePieceTransforms();
 }
 
 // ============================================================ //
-//  PlayerPiece からの報告
+//  押し戻し (反復解決)
 // ============================================================ //
-void Player::AddCollisionCorrection(const VECTOR& _correction)
+void Player::ResolvePenetration(const std::vector<BlockBox>& _blocks)
 {
-	if (_correction.x == 0.0f && _correction.y == 0.0f)
-		return;
+	const float rotZ = mpTransform->GetRotation().z;
 
-	mCollisionCorrections.push_back(_correction);
-}
-
-void Player::AddPieceContact(const PieceContact& _contact)
-{
-	mPieceContacts.push_back(_contact);
-}
-
-// ============================================================ //
-//  押し戻し
-// ============================================================ //
-VECTOR Player::CalculateCollisionCorrection() const
-{
-	// 各方向(+X, -X, +Y, -Y)で一番大きい押し戻しを採用して合計する
-	// (同じ方向の押し戻しを足し合わせると押し戻しすぎるため)
-	float minX = 0.0f, maxX = 0.0f;
-	float minY = 0.0f, maxY = 0.0f;
-
-	for (const VECTOR& candidate : mCollisionCorrections)
+	for (int i = 0; i < MAX_RESOLVE_ITERATIONS; ++i)
 	{
-		if (candidate.x > maxX) maxX = candidate.x;
-		if (candidate.x < minX) minX = candidate.x;
-		if (candidate.y > maxY) maxY = candidate.y;
-		if (candidate.y < minY) minY = candidate.y;
-	}
+		const VECTOR pos = mpTransform->GetPosition();
+		VECTOR correction = CombineCorrections(QueryPose(pos, rotZ, mShape, _blocks));
 
-	return VGet(maxX + minX, maxY + minY, 0.0f);
+		// 不感帯 : ごく小さい押し戻しは無視(細かい振動を防ぐ)
+		if (std::fabsf(correction.x) < GameConfig::PENETRATION_DEADZONE)
+			correction.x = 0.0f;
+		if (std::fabsf(correction.y) < GameConfig::PENETRATION_DEADZONE)
+			correction.y = 0.0f;
+
+		if (correction.x == 0.0f && correction.y == 0.0f)
+			break;	// めり込みが解消された
+
+		// 減衰 : 押し戻しすぎ(行き過ぎて逆にめり込む)を防ぐ。残りは次の繰り返しで押す
+		mpTransform->SetPosition(VAdd(pos, VScale(correction, GameConfig::COLLISION_DAMPING)));
+	}
 }
 
-void Player::ApplyCollisionCorrection()
+// ============================================================ //
+//  接地プローブ
+// ============================================================ //
+void Player::UpdateGroundContacts(const std::vector<BlockBox>& _blocks)
 {
-	auto transform = GetTransform();
-	if (!transform)
-		return;
+	mGroundContacts.clear();
 
-	VECTOR correction = CalculateCollisionCorrection();
+	const float rotZ = mpTransform->GetRotation().z;
+	const VECTOR probeOffset = VGet(0.0f, GROUND_PROBE_DISTANCE, 0.0f);
+	const VECTOR probePos = VAdd(mpTransform->GetPosition(), probeOffset);
 
-	// 不感帯 : ごく小さい押し戻しは無視(細かい振動を防ぐ)
-	if (std::fabsf(correction.x) < GameConfig::PENETRATION_DEADZONE)
-		correction.x = 0.0f;
-	if (std::fabsf(correction.y) < GameConfig::PENETRATION_DEADZONE)
-		correction.y = 0.0f;
+	for (BodyContact& contact : QueryPose(probePos, rotZ, mShape, _blocks))
+	{
+		if (!contact.mbIsFloor)
+			continue;
 
-	if (correction.x == 0.0f && correction.y == 0.0f)
-		return;
-
-	// 減衰 : 押し戻しすぎ(行き過ぎて逆にめり込む)を防ぐ
-	correction = VScale(correction, GameConfig::COLLISION_DAMPING);
-
-	transform->SetPosition(VAdd(transform->GetPosition(), correction));
+		// プローブでずらした分を戻して、実際のセル位置にする
+		contact.mvCellWorldPos = VSub(contact.mvCellWorldPos, probeOffset);
+		SetSupportRange(rotZ, contact);
+		mGroundContacts.push_back(contact);
+	}
 }
 
 // ============================================================ //
 //  接地・倒れ込み
 // ============================================================ //
-void Player::ProcessGroundAndTopple()
+void Player::ProcessGroundAndTopple(const std::vector<BlockBox>& _blocks)
 {
-	const std::vector<PieceContact> groundContacts = CollectGroundContacts();
-
 	// -- 空中 -- //
-	if (groundContacts.empty())
+	if (mGroundContacts.empty())
 	{
 		SetGroundedState(false);
-		mbIsToppling = false;
-
 		return;
 	}
 
-	if (!GetTransform())
-		return;
-
 	// -- 安定して接地 -- //
-	if (IsStableOnGround(groundContacts))
+	if (IsStableOnGround())
 	{
 		SetGroundedState(true);
-		mbIsToppling = false;
 		SnapRotationIfNearlyFlat();
 		return;
 	}
 
 	// -- 不安定(重心が支えの外) -- //
-	SetGroundedState(false);
-
 	// 回転入力の直後は倒れ込みを止める(入力と倒れ込みが打ち消し合わないように)
 	if (mfInputCooldown > 0.0f)
 	{
-		mbIsToppling = false;
+		SetGroundedState(false);
 		return;
 	}
 
-	Topple(groundContacts);
+	// 倒れる先がふさがっていて少しも倒れられない = 何かにもたれて止まっている → 接地扱い
+	const bool hasToppled = Topple(_blocks);
+	SetGroundedState(!hasToppled);
 }
 
-std::vector<PieceContact> Player::CollectGroundContacts() const
+bool Player::IsStableOnGround() const
 {
-	std::vector<PieceContact> groundContacts;
-
-	for (const auto& contact : mPieceContacts)
-	{
-		// 上向きの押し戻し = 下から支えられている
-		if (contact.mCollisionInfo.normal.y < -0.5f)
-			groundContacts.push_back(contact);
-	}
-
-	return groundContacts;
-}
-
-bool Player::IsStableOnGround(const std::vector<PieceContact>& _groundContacts) const
-{
-	// 支えている範囲(x方向)
+	// 支えている範囲(x方向) : 全接触の支えの左端〜右端
 	float minSupportX = FLT_MAX;
 	float maxSupportX = -FLT_MAX;
-	for (const auto& contact : _groundContacts)
+	for (const auto& contact : mGroundContacts)
 	{
-		const float pieceX = contact.mvPieceWorldPos.x;
-		if (pieceX < minSupportX) minSupportX = pieceX;
-		if (pieceX > maxSupportX) maxSupportX = pieceX;
+		if (contact.mvSupportLeft.x < minSupportX) minSupportX = contact.mvSupportLeft.x;
+		if (contact.mvSupportRight.x > maxSupportX) maxSupportX = contact.mvSupportRight.x;
 	}
 
 	// 重心が支えの範囲内か
@@ -241,7 +263,7 @@ bool Player::IsStableOnGround(const std::vector<PieceContact>& _groundContacts) 
 		return false;
 
 	// 平らに置かれている or 離れた2点以上で支えている
-	const bool isNearlyFlat = IsNearlyFlat(GetTransform()->GetRotation().z);
+	const bool isNearlyFlat = IsNearlyFlat(mpTransform->GetRotation().z);
 	const bool isMultiPointSupport = (maxSupportX - minSupportX) >= MULTI_SUPPORT_WIDTH;
 
 	return isNearlyFlat || isMultiPointSupport;
@@ -249,109 +271,104 @@ bool Player::IsStableOnGround(const std::vector<PieceContact>& _groundContacts) 
 
 void Player::SnapRotationIfNearlyFlat()
 {
-	auto transform = GetTransform();
-	const float rotZ = transform->GetRotation().z;
+	const float rotZ = mpTransform->GetRotation().z;
 
 	if (!IsNearlyFlat(rotZ))
 		return;
 
 	const float snappedRotZ = std::roundf(rotZ / RIGHT_ANGLE) * RIGHT_ANGLE;
-	transform->SetRotation(VGet(0.0f, 0.0f, snappedRotZ));
+	const float delta = snappedRotZ - rotZ;
+	if (delta == 0.0f)
+		return;
+
+	// 床に触れている点(重心の真下に一番近いもの)を中心に回す。
+	// Playerの原点を中心に回すと、支えている点が床に沈んだり浮いたりして横にずれていくため
+	const VECTOR pivot = FindClosestSupportPoint(mGroundContacts, CalculateCenterOfMass().x);
+	const VECTOR offsetFromPivot = VSub(mpTransform->GetPosition(), pivot);
+
+	mpTransform->SetPosition(VAdd(pivot, PlayerMath::RotateOffset(offsetFromPivot, delta)));
+	mpTransform->SetRotation(VGet(0.0f, 0.0f, snappedRotZ));
 }
 
-void Player::Topple(const std::vector<PieceContact>& _groundContacts)
+bool Player::Topple(const std::vector<BlockBox>& _blocks)
 {
-	auto transform = GetTransform();
-	const float rotZ = transform->GetRotation().z;
+	const float rotZ = mpTransform->GetRotation().z;
 
-	// -- 1. 支点 : 重心に一番近い接地Piece -- //
+	// -- 1. 支えの右端・左端 -- //
+	VECTOR rightmost = mGroundContacts[0].mvSupportRight;
+	VECTOR leftmost = mGroundContacts[0].mvSupportLeft;
+	for (const auto& contact : mGroundContacts)
+	{
+		if (contact.mvSupportRight.x > rightmost.x) rightmost = contact.mvSupportRight;
+		if (contact.mvSupportLeft.x < leftmost.x)   leftmost = contact.mvSupportLeft;
+	}
+
+	// -- 2. 倒れる向き : 重心が支えより右なら時計回り(+)、左なら反時計回り(-) -- //
 	const VECTOR com = CalculateCenterOfMass();
-	const VECTOR pivot = FindClosestContactPosition(_groundContacts, com);
-
-	// -- 2. 倒れる向き : 重心が支点より右なら時計回り(+)、左なら反時計回り(-) -- //
 	float direction = 0.0f;
-	if (com.x > pivot.x + GameConfig::STABLE_GROUND_THRESHOLD_X)
+	if (com.x > rightmost.x)
 		direction = 1.0f;
-	else if (com.x < pivot.x - GameConfig::STABLE_GROUND_THRESHOLD_X)
+	else if (com.x < leftmost.x)
 		direction = -1.0f;
 	else
-		direction = (std::sinf(rotZ) >= 0.0f) ? 1.0f : -1.0f;	// ほぼ真上 : 今傾いている向きへ
+		direction = (std::sinf(rotZ) >= 0.0f) ? 1.0f : -1.0f;	// 角1点の真上でつり合っている : 今傾いている向きへ
 
-	// -- 3. 支点まわりに少しだけ回す -- //
-	const float step = direction * PlayerMath::DegToRad(GameConfig::TOPPLE_SPEED_DEG);
-	const VECTOR offsetFromPivot = VSub(transform->GetPosition(), pivot);
+	// -- 3. 支点 : 倒れる側の支えの端(右に倒れるなら右端) -- //
+	const VECTOR pivot = (direction > 0.0f) ? rightmost : leftmost;
 
-	transform->SetPosition(VAdd(pivot, PlayerMath::RotateOffset(offsetFromPivot, step)));
-	transform->SetRotation(VGet(0.0f, 0.0f, rotZ + step));
+	// -- 4. 支点まわりに _step だけ回した姿勢と、そのときのめり込み量 -- //
+	const VECTOR offsetFromPivot = VSub(mpTransform->GetPosition(), pivot);
+	auto posAfter = [&](float _step) {
+		return VAdd(pivot, PlayerMath::RotateOffset(offsetFromPivot, _step));
+	};
+	auto penetrationAfter = [&](float _step) {
+		return MaxPenetration(QueryPose(posAfter(_step), rotZ + _step, mShape, _blocks));
+	};
 
-	mbIsToppling = true;
+	// -- 5. 回した先でめり込むなら、ぶつかる直前の角度を二分探索で探す(行き過ぎ防止) -- //
+	//    今すでにあるめり込み(支点の床など)より TOLERANCE 以上深くならない範囲で一番大きく回す
+	const float fullStep = direction * PlayerMath::DegToRad(GameConfig::TOPPLE_SPEED_DEG);
+	const float allowedPenetration = penetrationAfter(0.0f) + TOPPLE_PENETRATION_TOLERANCE;
+
+	float step = fullStep;
+	if (penetrationAfter(fullStep) > allowedPenetration)
+	{
+		float okRate = 0.0f;	// ここまでは回せる(割合)
+		float ngRate = 1.0f;	// ここまで回すとめり込む(割合)
+		for (int i = 0; i < TOPPLE_SEARCH_ITERATIONS; ++i)
+		{
+			const float midRate = (okRate + ngRate) * 0.5f;
+			if (penetrationAfter(fullStep * midRate) <= allowedPenetration)
+				okRate = midRate;
+			else
+				ngRate = midRate;
+		}
+		step = fullStep * okRate;
+	}
+
+	if (std::fabsf(step) < MIN_TOPPLE_STEP)
+		return false;	// ふさがっていて倒れられない
+
+	// -- 6. 支点まわりに回す -- //
+	mpTransform->SetPosition(posAfter(step));
+	mpTransform->SetRotation(VGet(0.0f, 0.0f, rotZ + step));
+	return true;
 }
 
 void Player::SetGroundedState(bool _grounded)
 {
-	// 空中から着地した瞬間、有効な全ピースの「外側のフチ」から外向きに水飛沫を出す
+	// 空中から着地した瞬間、全セルの「外側のフチ」から外向きに水飛沫を出す
 	if (!mbIsGrounded && _grounded)
 	{
 		auto scene = Master::mpSceneManager ? Master::mpSceneManager->GetCurrentScene() : nullptr;
-		auto effectManager = scene ? scene->GetEffectManager() : nullptr;
-		auto transform = GetTransform();
-
-		if (effectManager && transform)
+		if (auto effectManager = scene ? scene->GetEffectManager() : nullptr)
 		{
-			const float rotZ = transform->GetRotation().z;
-			const float halfCell = GameConfig::CELL_SIZE * 0.5f;
-
-			// 4方向（上・下・左・右）のオフセットとローカル角度
-			struct EdgeDir { int dc; int dr; float localX; float localY; float localAngle; };
-			const EdgeDir dirs[4] = {
-				{  0, -1,  0.0f, -halfCell, -DX_PI_F * 0.5f }, // 上のフチ
-				{  0,  1,  0.0f,  halfCell,  DX_PI_F * 0.5f }, // 下のフチ
-				{ -1,  0, -halfCell,  0.0f,  DX_PI_F        }, // 左のフチ
-				{  1,  0,  halfCell,  0.0f,  0.0f           }  // 右のフチ
-			};
-
-			for (int r = 0; r < GameConfig::PLAYER_PIECE_SIZE; ++r)
-			{
-				for (int c = 0; c < GameConfig::PLAYER_PIECE_SIZE; ++c)
-				{
-					auto piece = mPieces[c][r];
-					if (!piece || !piece->IsActive())
-						continue;
-
-					auto pieceTransform = piece->GetModule<Transform>();
-					if (!pieceTransform)
-						continue;
-
-					const VECTOR piecePos = pieceTransform->GetPosition();
-
-					// 上下左右のうち、隣にピースがない「外側の辺」からだけ外向きに出す
-					for (const auto& dir : dirs)
-					{
-						const int nc = c + dir.dc;
-						const int nr = r + dir.dr;
-
-						// 隣に有効なピースがあるなら内側（つなぎ目）なので出さない
-						if (nc >= 0 && nc < GameConfig::PLAYER_PIECE_SIZE &&
-							nr >= 0 && nr < GameConfig::PLAYER_PIECE_SIZE &&
-							mPieces[nc][nr] != nullptr && mPieces[nc][nr]->IsActive())
-						{
-							continue;
-						}
-
-						// プレイヤーの回転角度に合わせてフチの座標と飛び出す角度を計算
-						const VECTOR edgeOffset = PlayerMath::RotateOffset(VGet(dir.localX, dir.localY, 0.0f), rotZ);
-						const VECTOR spawnPos = VAdd(piecePos, edgeOffset);
-						const float outwardAngle = dir.localAngle + rotZ;
-
-						effectManager->Play<EffectFall>(spawnPos.x, spawnPos.y, outwardAngle);
-					}
-				}
-			}
+			for (const OuterEdge& edge : CollectOuterEdges())
+				effectManager->Play<EffectFall>(edge.mvPosition.x, edge.mvPosition.y, edge.mfOutwardAngle);
 		}
 	}
 
 	mbIsGrounded = _grounded;
 
-	if (auto gravity = GetModule<Gravity>())
-		gravity->SetGrounded(_grounded);
+	mpGravity->SetGrounded(_grounded);
 }

@@ -23,7 +23,7 @@ public:
 	// -- 物理・回転・倒れ込み用定数 -- //
 	static constexpr float ALLOWED_PENETRATION = CELL_SIZE * 0.1f;	// 回転判定における許容めり込み量
 	static constexpr float ROTATION_STEP_DEG = 5.0f;	// 1回の回転角度（度数法）
-	static constexpr float ROTATION_SHIFT_X = 8.0f;		// 回転入力時の横移動補正量
+	static constexpr float ROTATION_SHIFT_X = 5.0f;		// 回転入力時の横移動補正量(大きいほど回転で横に進む)
 	static constexpr float TOPPLE_SPEED_DEG = 3.0f;		// 接地倒れ込み時の角速度（度数法）
 	static constexpr float STABLE_GROUND_THRESHOLD_X = 16.0f;	// 安定接地と判定する重心・支点の許容誤差
 
