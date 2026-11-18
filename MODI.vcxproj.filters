@@ -184,6 +184,12 @@
     <Filter Include="ヘッダー ファイル\Manager\Input">
       <UniqueIdentifier>{fb64202a-2324-4a29-a730-5af2885634c4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Camera">
+      <UniqueIdentifier>{e997ba1d-6296-4abf-a39d-7e5c39399b8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Camera">
+      <UniqueIdentifier>{fed7464b-6434-4fe5-a408-7d6aea183347}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\GamePad.cpp">
@@ -404,6 +410,12 @@
     </ClCompile>
     <ClCompile Include="Source\GoalEffect.cpp">
       <Filter>ソース ファイル\Effect\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Camera.cpp">
+      <Filter>ソース ファイル\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CameraShake.cpp">
+      <Filter>ソース ファイル\Camera</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -637,6 +649,12 @@
     </ClInclude>
     <ClInclude Include="Source\GoalEffect.h">
       <Filter>ヘッダー ファイル\Effects\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Camera.h">
+      <Filter>ヘッダー ファイル\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\CameraShake.h">
+      <Filter>ヘッダー ファイル\Camera</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
