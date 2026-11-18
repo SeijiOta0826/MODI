@@ -18,13 +18,26 @@ namespace
 {
 	constexpr float BUTTON_OFFSET_X = 180.0f;	// OK / Back ボタンの左右位置
 	constexpr float BUTTON_OFFSET_Y = 300.0f;	// OK / Back ボタンの縦位置
-	constexpr float MESSAGE_OFFSET_Y = -280.0f;	// メッセージの縦位置
 	constexpr int BUTTON_BRIGHT = 170;			// スプーン / フォーク画像の明るさ (255 = 元の色)
 
 	constexpr int LAYER_OVERLAY = 0;
 	constexpr int LAYER_FRAME = 1;
 	constexpr int LAYER_PIECE = 2;
 	constexpr int LAYER_BUTTON = 3;
+
+	// UIの選択状態を形状マスク(画面基準)にまとめる
+	PlayerShapeMask MakeShapeFromUI(const PlayerShapeUI& _ui)
+	{
+		PlayerShapeMask shape{};
+		for (int row = 0; row < GameConfig::PLAYER_PIECE_SIZE; ++row)
+		{
+			for (int column = 0; column < GameConfig::PLAYER_PIECE_SIZE; ++column)
+			{
+				shape[column][row] = _ui.IsPieceSelected(column, row);
+			}
+		}
+		return shape;
+	}
 }
 
 void PlayerShapeUI::Init()
@@ -52,9 +65,6 @@ void PlayerShapeUI::Init()
 	mpBackGround->SetEnabled(true);
 	this->AddChild(mpBackGround);
 	mpBackGround->SetParent(this);
-
-	// -- ボタン・メッセージ生成 -- //
-	mpMessageUI = CreateMessageUI(0.0f, MESSAGE_OFFSET_Y);
 
 	// -- 「OK」ボタン生成 -- //
 	mpConfirmUI = GetUIManager()->CreateUI<UI>();
@@ -87,7 +97,7 @@ void PlayerShapeUI::Init()
 	this->AddChild(mpBackUI);
 	mpBackUI->SetParent(this);
 	mpBackUI->SetEnabled(true);
-	
+
 	// -- オーバーレイ生成 -- //
 	mpOverlay = GetUIManager()->CreateUI<UI>();
 	mpOverlay->LoadUIGraph("Resource/UI/Overlay/Overlay_black.png");
@@ -130,31 +140,15 @@ void PlayerShapeUI::CreatePieceUI(int _column, int _row)
 	));
 }
 
-UI* PlayerShapeUI::CreateMessageUI(float _x, float _y)
-{
-	// 画像なし・テキストのみのUI
-	UI* message = GetUIManager()->CreateUI<UI>();
-
-	message->SetLayer(LAYER_BUTTON);
-	message->GetTransform().SetPosition(VGet(_x, _y, 0.0f));
-	message->GetText().SetColor(GetColor(255, 80, 80));
-
-	this->AddChild(message);
-	message->SetParent(this);
-	message->SetEnabled(true);
-
-	return message;
-}
-
 void PlayerShapeUI::Open()
 {
 	if (mpPlayer == nullptr)
 		return;
 
-	// 基盤ブロックを決めて Player を停止 → その状態をUIへ反映
+	// 基盤ブロック・地形にめり込むマスを決めて Player を停止 → その状態をUIへ反映
 	mpPlayer->BeginShapeEdit();
 	SyncFromPlayer();
-	ShowMessage("");
+	RefreshPieceLocks();
 
 	SetEnabled(true);
 }
@@ -177,6 +171,9 @@ void PlayerShapeUI::OnShapeInput()
 
 void PlayerShapeUI::Update()
 {
+	// 子(各マス)がクリックを処理する前に、最新の選択状態でロックを更新しておく
+	RefreshPieceLocks();
+
 	UI::Update();
 
 	if (mpConfirmUI->GetButton().IsClicked())
@@ -211,6 +208,9 @@ void PlayerShapeUI::SyncFromPlayer()
 	int baseRow = -1;
 	mpPlayer->GetScreenBaseCell(baseColumn, baseRow);
 
+	// 変形中はPlayerが止まっているので、めり込みマスは開いたときに1回反映すればよい
+	const PlayerShapeMask terrainBlocked = mpPlayer->GetScreenTerrainBlockedMask();
+
 	for (int row = 0; row < GameConfig::PLAYER_PIECE_SIZE; ++row)
 	{
 		for (int column = 0; column < GameConfig::PLAYER_PIECE_SIZE; ++column)
@@ -218,6 +218,25 @@ void PlayerShapeUI::SyncFromPlayer()
 			auto pieceUI = mPieceUI[column][row];
 			pieceUI->SetSelected(shape[column][row]);
 			pieceUI->SetBase(column == baseColumn && row == baseRow);
+			pieceUI->SetTerrainBlocked(terrainBlocked[column][row]);
+		}
+	}
+}
+
+void PlayerShapeUI::RefreshPieceLocks()
+{
+	if (mpPlayer == nullptr || !mpPlayer->IsShapeEditing())
+		return;
+
+	// 「どのマスを切り替えてよいか」の判定は Player に任せる
+	const PlayerShapeMask toggleable =
+		mpPlayer->GetScreenToggleableMask(MakeShapeFromUI(*this));
+
+	for (int row = 0; row < GameConfig::PLAYER_PIECE_SIZE; ++row)
+	{
+		for (int column = 0; column < GameConfig::PLAYER_PIECE_SIZE; ++column)
+		{
+			mPieceUI[column][row]->SetLocked(!toggleable[column][row]);
 		}
 	}
 }
@@ -227,37 +246,8 @@ void PlayerShapeUI::ApplyShapeFromUI()
 	if (mpPlayer == nullptr)
 		return;
 
-	PlayerShapeMask shape{};
-	for (int row = 0; row < GameConfig::PLAYER_PIECE_SIZE; ++row)
-	{
-		for (int column = 0; column < GameConfig::PLAYER_PIECE_SIZE; ++column)
-		{
-			shape[column][row] = IsPieceSelected(column, row);
-		}
-	}
-
-	switch (mpPlayer->TryChangeShapeFromScreen(shape))
-	{
-	case ShapeChangeResult::Success:
+	// 選べないマスはロック済みなので、ここに来る形状は常に正しい。
+	// 万一失敗した場合(判定のズレなど)は、何もせず開いたままにする。
+	if (mpPlayer->TryChangeShapeFromScreen(MakeShapeFromUI(*this)) == ShapeChangeResult::Success)
 		Close();
-		break;
-
-	case ShapeChangeResult::BaseRemoved:
-		ShowMessage("基盤ブロック(赤枠)は外せません");
-		break;
-
-	case ShapeChangeResult::Disconnected:
-		ShowMessage("ブロックはひとつにつなげてください");
-		break;
-
-	case ShapeChangeResult::Overlapping:
-		ShowMessage("地形に重なるため変形できません");
-		break;
-	}
-}
-
-void PlayerShapeUI::ShowMessage(const std::string& _message)
-{
-	if (mpMessageUI != nullptr)
-		mpMessageUI->GetText().SetText(_message);
 }
