@@ -2,6 +2,7 @@
 #include "ScreenConfig.h"
 #include "InputManager.h"
 #include "Master.h"
+#include "EffekseerManager.h"
 
 
 #include <algorithm>
@@ -84,6 +85,7 @@ Game::~Game()
         Master::mpResource = nullptr;
     }
 
+    EffekseerManager::GetInstance().Finalize();
     DxLib_End();
 }
 
@@ -98,10 +100,18 @@ bool Game::InitializeDxLib()
 
     SetWaitVSyncFlag(TRUE);
 
+    SetUseDirect3DVersion(DX_DIRECT3D_11); 
+
     if (DxLib_Init() == -1) {
         return false;
     }
     
+    if (!EffekseerManager::GetInstance().Initialize())
+    {
+        DxLib_End();
+        return false;
+    }
+
     SetDrawScreen(DX_SCREEN_BACK);
 
     SetUseZBufferFlag(TRUE);

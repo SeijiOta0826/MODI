@@ -6,6 +6,7 @@
 #include "InputManager.h"
 #include "Camera.h"
 #include "CameraShake.h"
+#include "EffekseerManager.h"
 
 Scene::Scene()
 {
@@ -108,6 +109,8 @@ void Scene::UpdateOverlay(float _realDelta)
 		mpEffectManager->Update(_realDelta);
 		mpEffectManager->PlayClickRipple();
 	}
+
+	EffekseerManager::GetInstance().Update();
 
 	// -- カメラシェイクの計算結果をカメラに反映する（毎フレーム自動実行） -- //
 	if (mpCameraShake != nullptr && mpCamera != nullptr)

@@ -1,23 +1,33 @@
 ﻿#include "EffectClick.h"
+#include "EffekseerManager.h"
 
 EffectClick::EffectClick(float fX, float fY)
-    : EffectBase(fX, fY, DURATION) // 寿命を基底クラスに渡すだけ
+    : EffectBase(fX, fY, NO_LIFE_TIME)
 {
+    // クリックされた座標 (fX, fY) に Effekseer エフェクトを再生し、番号を受け取る
+    m_handle = EffekseerManager::GetInstance().Play(EFFECT_PATH, fX, fY, SCALE);
 }
 
-void EffectClick::OnUpdate(float fDeltaTime)
+EffectClick::~EffectClick()
 {
-    // GetProgress() は 0.0f ～ 1.0f を返す
-    const float progress = GetProgress();
+    // 途中で消された場合はエフェクトも止める
+    if (EffekseerManager::GetInstance().IsPlaying(m_handle))
+    {
+        EffekseerManager::GetInstance().Stop(m_handle);
+    }
+}
 
-    // 進行度に応じて半径を広げ、アルファを薄くするだけ
-    m_fCurrentRadius = MAX_RADIUS * progress;
-    m_fAlpha = 255.0f * (1.0f - progress);
+void EffectClick::OnUpdate([[maybe_unused]] float fDeltaTime)
+{
+    // Effekseerの再生が終わったら（またはファイルがまだ無ければ）、このオブジェクトを消滅させる
+    if (!EffekseerManager::GetInstance().IsPlaying(m_handle))
+    {
+        Kill();
+    }
 }
 
 void EffectClick::Draw() const
 {
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(m_fAlpha));
-    DrawCircle(static_cast<int>(m_fX), static_cast<int>(m_fY), static_cast<int>(m_fCurrentRadius), GetColor(255, 255, 255), FALSE);
-    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+    // 自分の番号のエフェクトを描画する
+    EffekseerManager::GetInstance().DrawEffect(m_handle);
 }
