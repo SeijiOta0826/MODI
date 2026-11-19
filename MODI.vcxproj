@@ -73,6 +73,7 @@
     <ClCompile Include="Source\PlayerShape.cpp" />
     <ClCompile Include="Source\PlayerShapeUI.cpp" />
     <ClCompile Include="Source\ResourceManager.cpp" />
+    <ClCompile Include="Source\MessageUI.cpp" />
     <ClCompile Include="Source\RespawnUI.cpp" />
     <ClCompile Include="Source\Scene.cpp" />
     <ClCompile Include="Source\SceneManager.cpp" />
@@ -123,6 +124,7 @@
     <ClInclude Include="Source\EffectSteamConfig.h" />
     <ClInclude Include="Source\EffectTrans.h" />
     <ClInclude Include="Source\FadeEffect.h" />
+    <ClInclude Include="Source\MessageUI.h" />
     <ClInclude Include="Source\RespawnUI.h" />
     <ClInclude Include="Source\StageBackGround.h" />
     <ClInclude Include="Source\StageBackGroundTable.h" />

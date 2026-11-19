@@ -124,6 +124,24 @@ namespace
 
 		return rotated;
 	}
+
+	// 上下左右のどれかに選択マスがあるか
+	bool HasSelectedNeighbor(const PlayerShapeMask& _shape, int _column, int _row)
+	{
+		constexpr int DIRECTIONS[4][2] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
+
+		for (const auto& dir : DIRECTIONS)
+		{
+			const int c = _column + dir[0];
+			const int r = _row + dir[1];
+
+			if (c < 0 || c >= N || r < 0 || r >= N)
+				continue;
+			if (_shape[c][r])
+				return true;
+		}
+		return false;
+	}
 }
 
 // ============================================================ //
@@ -177,6 +195,7 @@ void Player::BeginShapeEdit()
 
 	mbIsShapeEditing = true;
 	SelectBaseCell();
+	CacheTerrainBlockedCells();
 }
 
 void Player::EndShapeEdit()
@@ -195,6 +214,30 @@ void Player::GetScreenBaseCell(int& _column, int& _row) const
 	_column = mnBaseColumn;
 	_row = mnBaseRow;
 	RotateCell(_column, _row, GetQuarterTurns());
+}
+
+PlayerShapeMask Player::GetScreenToggleableMask(const PlayerShapeMask& _screenShape) const
+{
+	// 画面基準 → Player基準 で判定して、結果を画面基準に戻す
+	const int turns = GetQuarterTurns();
+	const PlayerShapeMask local = RotateShape(_screenShape, (4 - turns) % 4);
+
+	PlayerShapeMask toggleable{};
+	for (int r = 0; r < N; ++r)
+	{
+		for (int c = 0; c < N; ++c)
+		{
+			toggleable[c][r] = CanToggleLocalCell(local, c, r);
+		}
+	}
+
+	return RotateShape(toggleable, turns);
+}
+
+PlayerShapeMask Player::GetScreenTerrainBlockedMask() const
+{
+	// Player基準 → 画面基準
+	return RotateShape(mTerrainBlockedCells, GetQuarterTurns());
 }
 
 ShapeChangeResult Player::TryChangeShapeFromScreen(const PlayerShapeMask& _screenShape)
@@ -265,6 +308,53 @@ void Player::SelectBaseCell()
 				mnBaseColumn = c;
 				mnBaseRow = r;
 			}
+		}
+	}
+}
+
+bool Player::CanToggleLocalCell(const PlayerShapeMask& _shape, int _column, int _row) const
+{
+	// 基盤ブロックは外せない
+	if (_column == mnBaseColumn && _row == mnBaseRow)
+		return false;
+
+	// 選択中 → 外してもひとつの塊のままなら外せる
+	if (_shape[_column][_row])
+	{
+		PlayerShapeMask removed = _shape;
+		removed[_column][_row] = false;
+		return IsConnected(removed, mnBaseColumn, mnBaseRow);
+	}
+
+	// 非選択 → 地形にめり込まず、隣に選択マスがあれば置ける
+	if (mTerrainBlockedCells[_column][_row])
+		return false;
+
+	return HasSelectedNeighbor(_shape, _column, _row);
+}
+
+void Player::CacheTerrainBlockedCells()
+{
+	mTerrainBlockedCells = {};
+
+	const VECTOR pos = mpTransform->GetPosition();
+	const float rotZ = mpTransform->GetRotation().z;
+	const std::vector<BlockBox> blocks = CollectBlocks();	// 1回だけ集めて使い回す
+
+	for (int r = 0; r < N; ++r)
+	{
+		for (int c = 0; c < N; ++c)
+		{
+			// 今あるブロックはその場にあるので判定不要
+			if (mShape[c][r])
+				continue;
+
+			// そのマス1つだけを置いた形で、めり込みを調べる
+			// (IsPoseAcceptable は一番深いめり込みで判定するので、1マスずつ調べても結果は同じ)
+			PlayerShapeMask single{};
+			single[c][r] = true;
+			mTerrainBlockedCells[c][r] =
+				!IsPoseAcceptable(TestCollisionAtPose(pos, rotZ, single, blocks));
 		}
 	}
 }

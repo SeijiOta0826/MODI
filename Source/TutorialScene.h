@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "Scene.h"
-#include "UITypewriterText.h"
 
 class Player;
 class Goal;
@@ -8,6 +7,7 @@ class PlayerShapeUI;
 class StageBackGround;
 class PauseUI;
 class UI;
+class MessageUI;
 
 class TutorialScene : public Scene
 {
@@ -35,13 +35,11 @@ private:
     PlayerShapeUI* mpShapeUI = nullptr;
     PauseUI* mpPauseUI = nullptr;
     UI* mpSkipButton = nullptr;
-    UI* mpMessageUI = nullptr;
+    MessageUI* mpMessageUI = nullptr;
 
     // -- チュートリアル進行管理 -- //
     int mnTutorialStep = 0;
     float mfStepTimer = 0.0f;
-    UITypewriterText mTypewriter;
-    int mMessageFontHandle = -1;
 
     // -- クリア演出用 -- //
     bool mbIsClear = false;

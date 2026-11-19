@@ -118,6 +118,11 @@ public:
 	void GetScreenBaseCell(int& _column, int& _row) const;
 	ShapeChangeResult TryChangeShapeFromScreen(const PlayerShapeMask& _screenShape);
 
+	// 画面基準の選択状態を渡すと、今クリックで切り替えてよいマスを返す(true = 切り替え可)
+	PlayerShapeMask GetScreenToggleableMask(const PlayerShapeMask& _screenShape) const;
+	// 置くとステージにめり込むマス(画面基準 / true = めり込む)
+	PlayerShapeMask GetScreenTerrainBlockedMask() const;
+
 private:
 	// ----------------- 基本 (Player.cpp) ----------------- //
 	void CreatePieces();
@@ -172,6 +177,8 @@ private:
 	int GetQuarterTurns() const;			// 現在の回転が90度の何回分か(0〜3)
 	void SelectBaseCell();					// 基盤ブロックの決定
 	static bool IsConnected(const PlayerShapeMask& _shape, int _startColumn, int _startRow);
+	void CacheTerrainBlockedCells();	// 置くと地形にめり込むマスを記録(変形開始時に1回)
+	bool CanToggleLocalCell(const PlayerShapeMask& _shape, int _column, int _row) const;
 
 private:
 	PlayerController mController;
@@ -199,6 +206,7 @@ private:
 	bool mbIsShapeEditing = false;	// 変形UIを開いているか(開いている間は停止)
 	int mnBaseColumn = 1;			// 基盤ブロックのマス(Player基準)
 	int mnBaseRow = 1;
+	PlayerShapeMask mTerrainBlockedCells{};	// 置くと地形にめり込むマス(Player基準)
 
 	// -- 回転軸セル(Player基準のマス) -- //
 	int mnPivotColumn = 1;

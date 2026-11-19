@@ -3,8 +3,6 @@
 
 #include "GameConfig.h"
 
-#include <string>
-
 class PlayerPieceUI;
 class Player;
 
@@ -15,6 +13,10 @@ class Player;
 * 使い方:
 *   Open()  … 現在のPlayerの形をUIに反映して表示(Playerは編集中で停止)
 *   Close() … 非表示にしてPlayerの停止を解除
+*
+* 選べないマス(地形にめり込む / つながりが切れる / 基盤)は
+* Player に問い合わせて毎フレームロックし、濃い影で表示する。
+* そのため OK を押した時点で、形状は常に正しい状態になっている。
 */
 class PlayerShapeUI : public UI
 {
@@ -35,13 +37,10 @@ public:
 
 private:
 	void CreatePieceUI(int _column, int _row);
-	//UI* CreateButtonUI(const std::string& _text, float _x, float _y);
-	UI* CreateMessageUI(float _x, float _y);
 
 	void SyncFromPlayer();		// Playerの現在形状 → UI
+	void RefreshPieceLocks();	// 今の選択状態から、各マスのロック(選べるか)を更新
 	void ApplyShapeFromUI();	// UI → Player(判定はPlayer側)
-
-	void ShowMessage(const std::string& _message);
 
 private:
 	Player* mpPlayer = nullptr;
@@ -54,6 +53,5 @@ private:
 	UI* mpConfirmUI = nullptr;
 	UI* mpBackUI = nullptr;
 	UI* mpOverlay = nullptr;
-	UI* mpBackGround = nullptr;	
-	UI* mpMessageUI = nullptr;	// 変形できない理由の表示用
+	UI* mpBackGround = nullptr;
 };

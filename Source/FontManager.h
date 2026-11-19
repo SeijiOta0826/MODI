@@ -11,6 +11,7 @@ enum class FontId
     SubTitle,
     Button,
     HUD,
+    Message,    // メッセージウィンドウ(MessageUI)
 };
 
 struct FontDesc

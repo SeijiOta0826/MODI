@@ -1,10 +1,11 @@
 ﻿#include "PlayerPieceUI.h"
 
-#include <DxLib.h>	// 選択済みPieceの減算ブレンド・枠描画用
+#include <DxLib.h>	// 減算ブレンド・枠描画用
 
 namespace
 {
-	constexpr int SELECTED_SUB_BLEND = 100;		// 選択中マスを暗くする減算量
+	constexpr int UNSELECTED_SUB_BLEND = 100;	// 非選択マスを暗くする減算量
+	constexpr int TERRAIN_BLOCKED_SUB_BLEND = 200;	// ステージにめり込むマスを暗くする減算量(非選択より濃い影)
 	constexpr int BASE_FRAME_THICKNESS = 4;		// 基盤マスの赤枠の太さ(px)
 }
 
@@ -19,8 +20,8 @@ void PlayerPieceUI::Update()
 	if (!GetButton().IsClicked())
 		return;
 
-	// 基盤ブロックは外せない
-	if (IsBase())
+	// 基盤ブロック・ロック中のマスは切り替えない
+	if (IsBase() || IsLocked())
 		return;
 
 	ToggleSelected();
@@ -28,9 +29,11 @@ void PlayerPieceUI::Update()
 
 void PlayerPieceUI::Draw()
 {
-	if (!IsSelected())
+	const int shade = GetShadeAmount();
+
+	if (shade > 0)
 	{
-		SetDrawBlendMode(DX_BLENDMODE_SUB, SELECTED_SUB_BLEND);
+		SetDrawBlendMode(DX_BLENDMODE_SUB, shade);
 		UI::Draw();
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
@@ -41,6 +44,16 @@ void PlayerPieceUI::Draw()
 
 	if (IsBase())
 		DrawBaseFrame();
+}
+
+int PlayerPieceUI::GetShadeAmount() const
+{
+	// 選択中のマスは元の明るさのまま
+	// (外せない選択マスまで暗くすると「非選択」に見えてしまうため)
+	if (IsSelected())
+		return 0;
+
+	return IsTerrainBlocked() ? TERRAIN_BLOCKED_SUB_BLEND : UNSELECTED_SUB_BLEND;
 }
 
 void PlayerPieceUI::DrawBaseFrame()

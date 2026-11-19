@@ -58,6 +58,15 @@ void UIGraphic::Draw()
 		SetDrawBright(mnBright, mnBright, mnBright);
 	}
 
+	// 透明度を変える場合だけ、元のブレンド設定を保存してαブレンドにする
+	const bool changeAlpha = (mnAlpha != 255);
+	int prevBlendMode = DX_BLENDMODE_NOBLEND, prevBlendParam = 0;
+	if (changeAlpha)
+	{
+		GetDrawBlendMode(&prevBlendMode, &prevBlendParam);
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, mnAlpha);
+	}
+
 	DrawRotaGraph3(
 		static_cast<int>(centerPosition.x),
 		static_cast<int>(centerPosition.y),
@@ -70,6 +79,11 @@ void UIGraphic::Draw()
 		TRUE,
 		FALSE
 	);
+
+	if (changeAlpha)
+	{
+		SetDrawBlendMode(prevBlendMode, prevBlendParam);
+	}
 
 	if (changeBright)
 	{

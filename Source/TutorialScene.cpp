@@ -19,6 +19,7 @@
 #include "EffectClear.h"
 #include "UI.h"
 #include "StageBackGround.h"
+#include "MessageUI.h"
 
 #include "Transform.h"
 
@@ -66,14 +67,10 @@ void TutorialScene::Initialize()
     mpSkipButton->GetText().SetText("Skip");
     mpSkipButton->GetTransform().SetPosition(VGet(480.0f, -280.0f, 0.0f));
 
-    // -- メッセージ表示設定 -- //
-    mMessageFontHandle = CreateFontToHandle("PixelMplus10", 36, -1, DX_FONTTYPE_EDGE);
+    // -- メッセージウィンドウ -- //
     mnTutorialStep = 0;
     mfStepTimer = 0.0f; // ★タイマーを0に初期化
-    mpMessageUI = GetUIManager()->CreateUI<UI>();
-    mpMessageUI->SetEnabled(false);
-    mTypewriter.Initialize(mpMessageUI);
-    mTypewriter.SetFrameInterval(2);
+    mpMessageUI = GetUIManager()->CreateUI<MessageUI>();
     // ★最初は導入メッセージを表示！
     SetTutorialMessage("これからチュートリアルを始めるよ！\n基本の操作を一緒に覚えよう！");
 
@@ -87,8 +84,7 @@ void TutorialScene::SetTutorialMessage(const char* _text)
     if (mpMessageUI == nullptr)
         return;
 
-    mpMessageUI->GetText().SetText(_text);
-    mTypewriter.Start();
+    mpMessageUI->Show(_text);
 }
 
 void TutorialScene::Update(float _deltaTime)
@@ -96,7 +92,11 @@ void TutorialScene::Update(float _deltaTime)
     // -- クリア演出中の更新 -- //
     if (mbIsClear)
     {
-        mTypewriter.Update();
+        // Scene::Updateを通らないので、メッセージだけはここで更新する
+        if (mpMessageUI != nullptr)
+        {
+            mpMessageUI->Update();
+        }
         if (GetEffectManager() != nullptr)
         {
             GetEffectManager()->Update(_deltaTime);
@@ -111,7 +111,7 @@ void TutorialScene::Update(float _deltaTime)
         }
 
         if (mfClearTimer >= 5.0f ||
-            (mnTutorialStep == 99 && mTypewriter.IsFinished() && InputManager::GetInstance().GetButtonDown(Button::Confirm)))
+            (mnTutorialStep == 99 && mpMessageUI->IsFinished() && InputManager::GetInstance().GetButtonDown(Button::Confirm)))
         {
             GameProgress::SetTutorialCleared(true);   // チュートリアルのクリアを記録
             Master::mpSceneManager->RequestScene(SCENE_TYPE::STAGE_SELECT_SCENE);
@@ -153,8 +153,7 @@ void TutorialScene::Update(float _deltaTime)
     }
 
 
-    // -- メッセージ・進行ステップ更新 -- //
-    mTypewriter.Update();
+    // -- 進行ステップ更新 (メッセージの文字送りはScene::Update内のUIManagerで更新される) -- //
     UpdateTutorialStep(_deltaTime);
 
     Scene::Update(gameDeltaTime);
@@ -190,7 +189,7 @@ void TutorialScene::UpdateTutorialStep(float _deltaTime)
     // Step 0: 最初の挨拶文を読む時間（文字が出終わってから2.0秒経ったら回転の説明へ）
     if (mnTutorialStep == 0)
     {
-        if (mTypewriter.IsFinished())
+        if (mpMessageUI->IsFinished())
         {
             mfStepTimer += _deltaTime;
             if (mfStepTimer >= 2.0f) // ★読む時間の長さ（2.0秒）
@@ -272,54 +271,11 @@ void TutorialScene::Draw()
         mpBackgroundUI->DrawBackground();
     }
 
+    // メッセージウィンドウはMessageUIとしてUIManagerが描画する
     Scene::Draw();
-
-    // -- メッセージウィンドウ描画 (左上に大きく配置) -- //
-    constexpr int boxLeft = 30;
-    constexpr int boxTop = 25;
-    constexpr int boxRight = 920;  // ★大きな文字が余裕で収まるように横幅を拡大
-    constexpr int boxBottom = 165;  // ★縦幅も140pxに拡大
-
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 190);
-    DrawBox(boxLeft, boxTop, boxRight, boxBottom, GetColor(0, 0, 0), TRUE);
-    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
-    // 外枠を2重線にしてはっきり見やすくする
-    DrawBox(boxLeft, boxTop, boxRight, boxBottom, GetColor(255, 255, 255), FALSE);
-    DrawBox(boxLeft + 2, boxTop + 2, boxRight - 2, boxBottom - 2, GetColor(255, 255, 255), FALSE);
-
-    // -- テキストをウィンドウ内に大きく描画（改行対応） -- //
-    if (mMessageFontHandle != -1 && mpMessageUI != nullptr)
-    {
-        const std::string visibleText = mTypewriter.GetVisibleText();
-
-        constexpr int textX = boxLeft + 30; // 左端から30px内側
-        constexpr int textY = boxTop + 25;  // 上端から25px内側
-        constexpr int lineSpacing = 48;     // ★36pxフォントに合わせて行間も広く(48px)
-
-        size_t newlinePos = visibleText.find('\n');
-        if (newlinePos == std::string::npos)
-        {
-            DrawStringToHandle(textX, textY, visibleText.c_str(), GetColor(255, 255, 255), mMessageFontHandle);
-        }
-        else
-        {
-            std::string line1 = visibleText.substr(0, newlinePos);
-            std::string line2 = visibleText.substr(newlinePos + 1);
-
-            DrawStringToHandle(textX, textY, line1.c_str(), GetColor(255, 255, 255), mMessageFontHandle);
-            DrawStringToHandle(textX, textY + lineSpacing, line2.c_str(), GetColor(255, 255, 255), mMessageFontHandle);
-        }
-    }
 }
 
 void TutorialScene::Finalize()
 {
-    if (mMessageFontHandle != -1)
-    {
-        DeleteFontToHandle(mMessageFontHandle);
-        mMessageFontHandle = -1;
-    }
-
     Scene::Finalize();
 }
