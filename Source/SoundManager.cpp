@@ -90,18 +90,30 @@ void SoundManager::PlayBGM(SOUND_BGM bgm, bool isTop)
 	}
 }
 
-void SoundManager::PlaySE(SOUND_SE se)
+void SoundManager::PlaySE(SOUND_SE se, float pitchRate)
 {
 	for (auto it = mnSeHandleList.begin(); it != mnSeHandleList.end(); it++)
 	{
-		// 一致した種類のBGMがあれば
 		if (it->first == se)
 		{
-			// SEをループ再生
+			// -- 前回変更した音程をリセット -- //
+			ResetFrequencySoundMem(it->second);
+
+			// -- 元の再生周波数を取得 -- //
+			const int baseFrequency = GetFrequencySoundMem(it->second);
+
+			// -- 元の周波数を基準に音程を変更 -- //
+			const int newFrequency =
+				static_cast<int>(baseFrequency * pitchRate);
+
+			SetNextPlayFrequencySoundMem(
+				newFrequency,
+				it->second
+			);
+
+			// -- SEを再生 -- //
 			PlaySoundMem(it->second, DX_PLAYTYPE_BACK);
-			// SEを一回だけ再生
-			//PlaySoundMem(it->second, DX_PLAYTYPE_NORMAL, TRUE);
-			// 現在の再生種類を更新
+
 			mnNowPlayingSe = se;
 
 			break;

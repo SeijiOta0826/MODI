@@ -55,8 +55,9 @@ public:     // サウンド再生系
 	void PlayBGM(SOUND_BGM bgm, bool isTop = true);
 
 	// SE再生
-	// se ... 鳴らしたいSEの種類
-	void PlaySE(SOUND_SE se);
+	// se        ... 鳴らしたいSEの種類
+	// pitchRate ... 音程の倍率
+	void PlaySE(SOUND_SE se, float pitchRate = 1.0f);
 
 	// BGMの読み込み
 	void LoadBGM(SOUND_BGM bgm, std::string filename);
