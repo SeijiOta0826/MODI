@@ -7,6 +7,7 @@
 #include <DxLib.h>
 
 class UI;
+class FocusUI;
 
 class StageSelectScene : public Scene
 {
@@ -44,4 +45,5 @@ private:
     float mfBgScaleY = 1.0f;
 
     std::array<UI*, GameConfig::STAGE_COUNT> mpDishPanels{};    // クリック判定も兼ねる [ステージ番号 - 1]
+    FocusUI* mpFocus = nullptr;                                 // キーボードでのステージ選択
 };

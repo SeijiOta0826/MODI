@@ -245,7 +245,8 @@ void TutorialScene::UpdatePause()
 
     if (InputManager::GetInstance().GetButtonDown(Button::Pause))
     {
-        mpPauseUI->ToggleEnabled();
+        // ToggleEnabled() だと「操作説明」中の戻り処理やフォーカスの初期化が行われないので、GameSceneと同じ入口を使う
+        mpPauseUI->OnPauseInput();
     }
 }
 

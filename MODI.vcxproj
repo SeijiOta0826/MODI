@@ -89,6 +89,7 @@
     <ClCompile Include="Source\TutorialScene.cpp" />
     <ClCompile Include="Source\UI.cpp" />
     <ClCompile Include="Source\UIButton.cpp" />
+    <ClCompile Include="Source\FocusUI.cpp" />
     <ClCompile Include="Source\UIFloatingMotion.cpp" />
     <ClCompile Include="Source\UIGraphic.cpp" />
     <ClCompile Include="Source\UIHoverScaler.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="Source\UITypewriterText.h" />
     <ClInclude Include="Source\UI.h" />
     <ClInclude Include="Source\UIButton.h" />
+    <ClInclude Include="Source\FocusUI.h" />
     <ClInclude Include="Source\UIGraphic.h" />
     <ClInclude Include="Source\UIHoverScaler.h" />
     <ClInclude Include="Source\UIManager.h" />

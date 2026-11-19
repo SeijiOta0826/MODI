@@ -1,5 +1,6 @@
 ﻿#include "OperationGuideUI.h"
 #include "UIManager.h"
+#include "FocusUI.h"
 
 void OperationGuideUI::Init()
 {
@@ -44,9 +45,24 @@ void OperationGuideUI::Init()
     mpBackButton->GetText().SetText("戻る");
     mpBackButton->SetLayer(4);
     mpBackButton->GetTransform().SetPosition(VGet(0.0f, 400.0f, 0.0f));
+    mpBackButton->GetHoverScaler().SetActive(true);    // 選ばれていることが分かるように拡大演出を付ける
     mpBackButton->SetEnabled(true);
     AddChild(mpBackButton);
     mpBackButton->SetParent(this);
+
+    // -- キーボード選択(FocusUI) -- //
+    // 選べるのは「戻る」だけだが、Spaceで押せるようにするために登録する
+    mpFocus = GetUIManager()->CreateUI<FocusUI>();
+    AddChild(mpFocus);
+    mpFocus->SetParent(this);
+    mpFocus->Add(mpBackButton);
+}
+
+void OperationGuideUI::OnOpen()
+{
+    // 閉じている間は Update() が呼ばれないので、前回の true が残ったままになるのを防ぐ
+    mbBackRequested = false;
+    mpFocus->ResetFocus();
 }
 
 void OperationGuideUI::Update()

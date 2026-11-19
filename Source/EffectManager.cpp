@@ -51,15 +51,21 @@ void EffectManager::Clear()
 void EffectManager::PlayClickRipple()
 {
     auto& inputManager = InputManager::GetInstance();
-    if (inputManager.GetButtonDown(Button::Confirm))
-    {
-        const auto& mouse = inputManager.GetMouse();
-        const float posX = static_cast<float>(mouse.GetX());
-        const float posY = static_cast<float>(mouse.GetY());
+    if (!inputManager.GetButtonDown(Button::Confirm))
+        return;
 
-        // ClickEffect を生成して effects_ に追加
-        effects_.emplace_back(std::make_unique<EffectClick>(posX, posY));
-        // SE
-        SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_DECIDE);
-    }
+    // SE は決定入力すべて(マウス / Space / パッド)で鳴らす
+    SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_DECIDE);
+
+    // クリックエフェクトはマウスで押したときだけ
+    // (Confirm は Space とも共用なので、キーボード決定でマウス位置に波紋が出ないようにする)
+    const auto& mouse = inputManager.GetMouse();
+    if (!mouse.IsDown(MOUSE_INPUT_LEFT))
+        return;
+
+    const float posX = static_cast<float>(mouse.GetX());
+    const float posY = static_cast<float>(mouse.GetY());
+
+    // ClickEffect を生成して effects_ に追加
+    effects_.emplace_back(std::make_unique<EffectClick>(posX, posY));
 }

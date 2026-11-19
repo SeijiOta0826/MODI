@@ -3,6 +3,7 @@
 
 #include "UI.h"
 #include "UIManager.h"
+#include "FocusUI.h"
 
 #include "Master.h"
 #include "SceneManager.h"
@@ -51,6 +52,16 @@ void TitleScene::Initialize()
 	mpQuitButton->GetText().SetText("Quit");
 	mpQuitButton->GetTransform().SetScale(VGet(1.2f, 1.2f, 0.0f));
 	mpQuitButton->GetTransform().SetPosition(VGet(50.0f, 375.0f, 0.0f));
+
+	// -- キーボード選択(FocusUI) -- //
+	// 決定時はこのシーンで SE_SELECTUI を鳴らすので、ボタン側の決定SEは切る
+	mpStartButton->GetButton().SetDecideSE(false);
+	mpQuitButton->GetButton().SetDecideSE(false);
+
+	mpFocus = uiManager->CreateUI<FocusUI>();
+	mpFocus->Add(mpStartButton);
+	mpFocus->Add(mpQuitButton);
+	mpFocus->ResetFocus();
 
 	// -- BGMの再生 -- //
 	SoundManager::GetInstance()->PlayBGM(SoundManager::SOUND_BGM::BGM_Title, true);
