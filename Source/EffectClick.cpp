@@ -6,6 +6,8 @@ EffectClick::EffectClick(float fX, float fY)
 {
     // クリックされた座標 (fX, fY) に Effekseer エフェクトを再生し、番号を受け取る
     m_handle = EffekseerManager::GetInstance().Play(EFFECT_PATH, fX, fY, SCALE);
+    printfDx("Click! handle=%d pos=(%.0f, %.0f)\n", m_handle, fX, fY); // ←確認用
+    printfDx("LoadPath: %s\n", EFFECT_PATH);
 }
 
 EffectClick::~EffectClick()
@@ -28,6 +30,9 @@ void EffectClick::OnUpdate([[maybe_unused]] float fDeltaTime)
 
 void EffectClick::Draw() const
 {
-    // 自分の番号のエフェクトを描画する
+    printfDx("Draw! handle=%d playing=%d\n",
+        m_handle,
+        EffekseerManager::GetInstance().IsPlaying(m_handle) ? 1 : 0);
+
     EffekseerManager::GetInstance().DrawEffect(m_handle);
 }

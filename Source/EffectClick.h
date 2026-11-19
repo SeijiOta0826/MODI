@@ -8,9 +8,9 @@ class EffectClick final : public EffectBase
 {
 public:
     // --- 設定用の定数 ---
-    static constexpr const char* EFFECT_PATH = "Resource/Effect/Effekseer/Click.efkefc";
-    static constexpr float       SCALE = 15.0f;                          // 表示サイズ倍率
-    static constexpr float       NO_LIFE_TIME = 0.0f;                           // Effekseer側の再生終了に合わせるため0
+    static constexpr const char* EFFECT_PATH = "Resource/Effect/EffekseerA/Click.efkefc";
+    static constexpr float       SCALE = 15.0;                          // 表示サイズ倍率
+    static constexpr float       NO_LIFE_TIME = 0.0f;                   // Effekseer側の再生終了に合わせるため0
 
 public:
     EffectClick(float fX, float fY);
