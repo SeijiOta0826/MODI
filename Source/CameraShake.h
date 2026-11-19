@@ -25,7 +25,7 @@ public:
     // --- 定数定義（マジックナンバーの排除） ---
     static constexpr float ZERO_VALUE = 0.0f;
     static constexpr int   RAND_RESOLUTION = 10000; // 乱数の細かさ
-    static constexpr float RAND_SCALE = 2.0f;  // 0.0?1.0 を -1.0?+1.0 に広げる倍率
+    static constexpr float RAND_SCALE = 1.2f;  // 0.0?1.0 を -1.0?+1.0 に広げる倍率
     static constexpr float RAND_OFFSET = 1.0f;  // 中心を0にするための引き算値
 
 public:
