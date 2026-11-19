@@ -50,7 +50,7 @@ void Item::UpdateIdle() {
 	mTimer = 0.0f;
 	collider->SetEnabled(false);
 
-	SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_ITEM_GETTING);
+	//SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_ITEM_GETTING);
 }
 
 void Item::UpdatePicking(float _deltaTime) {

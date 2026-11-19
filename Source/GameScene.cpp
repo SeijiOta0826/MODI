@@ -191,6 +191,36 @@ void GameScene::UpdateItems()
 		mPickedItems[slot] = true;
 		mpItemHUD->SetPicked(slot);
 
+		// -- 取得したアイテム数を数える -- //
+		int pickedCount = 0;
+
+		for (bool isPicked : mPickedItems)
+		{
+			if (isPicked)
+				pickedCount++;
+		}
+
+		// -- 取得数に応じてSEの音程を変える -- //
+		float pitchRate = 1.0f;
+
+		if (pickedCount == 1)
+		{
+			pitchRate = 1.0f;
+		}
+		else if (pickedCount == 2)
+		{
+			pitchRate = 1.3f;
+		}
+		else if (pickedCount >= 3)
+		{
+			pitchRate = 1.6f;
+		}
+
+		SoundManager::GetInstance()->PlaySE(
+			SoundManager::SOUND_SE::SE_ITEM_GETTING,
+			pitchRate
+		);
+
 		if (mpBackgroundUI != nullptr)
 			mpBackgroundUI->SetPicked(slot);
 	}
