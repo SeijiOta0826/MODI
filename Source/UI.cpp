@@ -6,7 +6,7 @@ void UI::Initialize(UIManager* _manager)
 	mpUIManager = _manager;
 
 	mText.Initialize(this);
-	//mTypeWriterText.Initialize(this);
+	// memo : mTypewriterは文字送りしたいUIだけがInit()内でInitializeする
 	mButton.Initialize(this);
 	mHoverScaler.Initialize(this);
 	mFloatingMotion.Initialize(this);
@@ -21,7 +21,9 @@ void UI::LoadUIGraph(std::string filename)
 
 void UI::Update()
 {
-	//mTypeWriterText.Update();
+	if (mTypewriter.IsActive())
+		mTypewriter.Update();
+
 	if (mFloatingMotion.IsActive())
 		mFloatingMotion.Update();
 

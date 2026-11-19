@@ -25,6 +25,8 @@ enum class UITextVerticalAlign
 * 各UIにコンポジットする「テキスト描画」の要素。
 * フォントの見た目(名前・サイズ・太さ)はFontIdで指定し、FontManagerから取得する。
 * 色・縁の色・配置はこのクラスで管理する。
+* '\n' で改行でき、行ごとに配置(Align)を適用する。
+* 付与先UIのUITypewriterTextが有効なら、全文ではなく「文字送りで出ている分」だけを描く。
 */
 class UIText
 {
@@ -59,9 +61,13 @@ public:
 
 	void SetOffset(const VECTOR& _offset) { mvOffset = _offset; }
 
+	// -- 行間 -- //
+	void SetLineSpacing(int _lineSpacing) { mnLineSpacing = _lineSpacing; }	// 行の上端から次の行の上端まで(px)。0以下ならフォントサイズ
+
 private:
-	VECTOR CalculateTextDrawPosition(int _fontHandle) const;	// Alignを考慮した描画座標を返す
-	void DrawUnderline(const VECTOR& _textPosition, int _fontHandle) const;
+	int GetLineHeight(int _fontHandle) const;	// 1行分の送り幅を返す
+	VECTOR CalculateLineDrawPosition(const std::string& _line, size_t _lineIndex, size_t _lineCount, int _fontHandle) const;	// Alignを考慮した各行の描画座標を返す
+	void DrawUnderline(const std::string& _line, const VECTOR& _textPosition, int _fontHandle) const;
 
 private:
 	std::string mText;	// 描画するテキストの全文
@@ -75,6 +81,8 @@ private:
 	UITextVerticalAlign mVerticalAlign = UITextVerticalAlign::CENTER;	// 縦の配置(デフォルトは中央揃え)
 
 	VECTOR mvOffset = VGet(0.0f, 0.0f, 0.0f);	// 配置後の追加オフセット
+
+	int mnLineSpacing = 0;	// 行間(0以下ならフォントサイズ)
 
 	bool mbUnderline = false;	// 下線を引くか
 	static constexpr int UNDERLINE_GAP = 4;			// 文字と下線の隙間

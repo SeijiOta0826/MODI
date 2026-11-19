@@ -4,6 +4,7 @@
 #include  "UITransform.h"
 #include "UIGraphic.h"
 #include "UIText.h"
+#include "UITypewriterText.h"
 #include "UIButton.h"
 #include "UIHoverScaler.h"
 #include "UIFloatingMotion.h"
@@ -43,6 +44,7 @@ public:
 	UITransform& GetTransform() { return mTransform; }
 	UIGraphic& GetGraphic() { return mGraphic; }
 	UIText& GetText() { return mText; }
+	UITypewriterText& GetTypewriter() { return mTypewriter; }
 	UIButton& GetButton() { return mButton; }
 	UIHoverScaler& GetHoverScaler() { return mHoverScaler; }
 	UIFloatingMotion& GetFloatingMotion() { return mFloatingMotion; }
@@ -63,6 +65,7 @@ private:
 	UITransform mTransform;
 	UIGraphic mGraphic;
 	UIText mText;
+	UITypewriterText mTypewriter;	// Initialize()を呼んだUIだけ文字送りになる(UIGraphicと同じくオプトイン)
 	UIButton mButton;
 	UIHoverScaler mHoverScaler;
 	UIFloatingMotion mFloatingMotion;

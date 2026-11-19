@@ -69,6 +69,13 @@ Game::Game()
         hudDesc.fontType = DX_FONTTYPE_EDGE;
         hudDesc.edgeSize = 0;
         Master::mpFontManager->Register(FontId::HUD, hudDesc);
+
+        // -- メッセージウィンドウ(MessageUI) -- //
+        FontDesc messageDesc;
+        messageDesc.name = "PixelMplus10";
+        messageDesc.size = 36;
+        messageDesc.fontType = DX_FONTTYPE_EDGE;
+        Master::mpFontManager->Register(FontId::Message, messageDesc);
     }
 }
 
