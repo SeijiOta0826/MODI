@@ -10,18 +10,20 @@ namespace
     {
         if (detail != nullptr)
         {
-         
+            printfDx("【Effekseerエラー】%s: %s\n", message, detail);
             char buf[512];
             std::snprintf(buf, sizeof(buf), "[EffekseerError] %s: %s\n", message, detail);
             OutputDebugStringA(buf);
         }
         else
         {
+            printfDx("【Effekseerエラー】%s\n", message);
             char buf[512];
             std::snprintf(buf, sizeof(buf), "[EffekseerError] %s\n", message);
             OutputDebugStringA(buf);
         }
     }
+
 }
 
 bool EffekseerManager::Initialize()
@@ -268,27 +270,23 @@ void EffekseerManager::DrawEffect(int playingHandle) const
     {
         return;
     }
-
-    // Update() の呼び忘れや Play() 直後のフレームでも確実に時間を進める
     if (!m_updatedSinceLastDraw)
     {
         UpdateEffekseer2D();
         m_updatedSinceLastDraw = true;
     }
-
     if (IsEffekseer2DEffectPlaying(playingHandle) != EFFEKSEER_OK)
     {
         return;
     }
-
+    // DXライブラリ側の3D/ライティング設定が2Dエフェクトに干渉しないようにして描画
     ClearDrawScreenZBuffer();
-
-    SetUseZBuffer3D(TRUE);
-    SetWriteZBuffer3D(TRUE);
-
-    DrawEffekseer2D_Begin();
-    DrawEffekseer2D_Draw(playingHandle);
-    DrawEffekseer2D_End();
+    SetUseLighting(FALSE);
+    SetUseZBufferFlag(FALSE);
+    SetWriteZBufferFlag(FALSE);
+    DrawEffekseer2D();
+    // DXライブラリの Direct3D 設定を復元
+    RefreshDxLibDirect3DSetting();
 }
 
 void EffekseerManager::DrawAll() const

@@ -16,10 +16,8 @@
 #include "Goal.h"
 #include "PlayerShapeUI.h"
 #include "PauseUI.h"
-#include "EffectClear.h"
 #include "UI.h"
 #include "StageBackGround.h"
-#include "MessageUI.h"
 
 #include "Transform.h"
 
@@ -32,16 +30,18 @@ void TutorialScene::Initialize()
 {
     mbIsClear = false;
     mfClearTimer = 0.0f;
+    m_goalEffect.Clear();
 
-    // -- Player・変形UIの生成 (変形UIはInit内でPlayerを探すため後に作る) -- //
-    const VECTOR initPos = VGet(200.0f, 350.0f, 0.0f);
-    auto player = GetObjectManager()->CreateObject<Player>(initPos);
-    if(player)
-        mpShapeUI = GetUIManager()->CreateUI<PlayerShapeUI>();
-    
-    // -- ステージ読み込み -- //
+    // -- 1. 先にステージCSVを読み込む（CSV内の「5」の位置にPlayerが1人だけ生成される） -- //
     auto* stage = new Stage();
     stage->Load("Resource/CSV/Stage/Stage0.csv");
+
+    // -- 2. CSVから生成されたPlayerを探してから変形UIを作る -- //
+    auto* player = GetObjectManager()->FindObject<Player>();
+    if (player != nullptr)
+    {
+        mpShapeUI = GetUIManager()->CreateUI<PlayerShapeUI>();
+    }
 
     mpGoal = GetObjectManager()->FindObject<Goal>();
 
@@ -67,10 +67,14 @@ void TutorialScene::Initialize()
     mpSkipButton->GetText().SetText("Skip");
     mpSkipButton->GetTransform().SetPosition(VGet(480.0f, -280.0f, 0.0f));
 
-    // -- メッセージウィンドウ -- //
+    // -- メッセージ表示設定 -- //
+    mMessageFontHandle = CreateFontToHandle("PixelMplus10", 36, -1, DX_FONTTYPE_EDGE);
     mnTutorialStep = 0;
     mfStepTimer = 0.0f; // ★タイマーを0に初期化
-    mpMessageUI = GetUIManager()->CreateUI<MessageUI>();
+    mpMessageUI = GetUIManager()->CreateUI<UI>();
+    mpMessageUI->SetEnabled(false);
+    mTypewriter.Initialize(mpMessageUI);
+    mTypewriter.SetFrameInterval(2);
     // ★最初は導入メッセージを表示！
     SetTutorialMessage("これからチュートリアルを始めるよ！\n基本の操作を一緒に覚えよう！");
 
@@ -84,7 +88,8 @@ void TutorialScene::SetTutorialMessage(const char* _text)
     if (mpMessageUI == nullptr)
         return;
 
-    mpMessageUI->Show(_text);
+    mpMessageUI->GetText().SetText(_text);
+    mTypewriter.Start();
 }
 
 void TutorialScene::Update(float _deltaTime)
@@ -92,15 +97,12 @@ void TutorialScene::Update(float _deltaTime)
     // -- クリア演出中の更新 -- //
     if (mbIsClear)
     {
-        // Scene::Updateを通らないので、メッセージだけはここで更新する
-        if (mpMessageUI != nullptr)
-        {
-            mpMessageUI->Update();
-        }
+        mTypewriter.Update();
         if (GetEffectManager() != nullptr)
         {
             GetEffectManager()->Update(_deltaTime);
         }
+        m_goalEffect.Update();
 
         mfClearTimer += _deltaTime;
 
@@ -111,7 +113,7 @@ void TutorialScene::Update(float _deltaTime)
         }
 
         if (mfClearTimer >= 5.0f ||
-            (mnTutorialStep == 99 && mpMessageUI->IsFinished() && InputManager::GetInstance().GetButtonDown(Button::Confirm)))
+            (mnTutorialStep == 99 && mTypewriter.IsFinished() && InputManager::GetInstance().GetButtonDown(Button::Confirm)))
         {
             GameProgress::SetTutorialCleared(true);   // チュートリアルのクリアを記録
             Master::mpSceneManager->RequestScene(SCENE_TYPE::STAGE_SELECT_SCENE);
@@ -131,7 +133,6 @@ void TutorialScene::Update(float _deltaTime)
         return;
     }
 
- 
     // -- ポーズ制御 & 最初の挨拶中（Step 0）の操作ロック -- //
     if (mnTutorialStep > 0)
     {
@@ -152,8 +153,8 @@ void TutorialScene::Update(float _deltaTime)
         UpdateShapeUIToggle();
     }
 
-
-    // -- 進行ステップ更新 (メッセージの文字送りはScene::Update内のUIManagerで更新される) -- //
+    // -- メッセージ・進行ステップ更新 -- //
+    mTypewriter.Update();
     UpdateTutorialStep(_deltaTime);
 
     Scene::Update(gameDeltaTime);
@@ -170,13 +171,11 @@ void TutorialScene::Update(float _deltaTime)
         SoundManager::GetInstance()->StopBGM();
         SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_GOALVOICE);
 
-        if (GetEffectManager() != nullptr)
-        {
-            GetEffectManager()->Play<EffectClear>(
-                ScreenConfig::SCREEN_WIDTH / 2.0f,
-                ScreenConfig::SCREEN_HEIGHT / 2.0f
-            );
-        }
+        // Effekseer版ゴールエフェクトを画面中央で再生
+        m_goalEffect.Trigger(
+            ScreenConfig::SCREEN_WIDTH / 2.0f,
+            ScreenConfig::SCREEN_HEIGHT / 2.0f
+        );
 
         SetTutorialMessage("チュートリアルクリア！ おめでとう！");
     }
@@ -189,7 +188,7 @@ void TutorialScene::UpdateTutorialStep(float _deltaTime)
     // Step 0: 最初の挨拶文を読む時間（文字が出終わってから2.0秒経ったら回転の説明へ）
     if (mnTutorialStep == 0)
     {
-        if (mpMessageUI->IsFinished())
+        if (mTypewriter.IsFinished())
         {
             mfStepTimer += _deltaTime;
             if (mfStepTimer >= 2.0f) // ★読む時間の長さ（2.0秒）
@@ -245,8 +244,7 @@ void TutorialScene::UpdatePause()
 
     if (InputManager::GetInstance().GetButtonDown(Button::Pause))
     {
-        // ToggleEnabled() だと「操作説明」中の戻り処理やフォーカスの初期化が行われないので、GameSceneと同じ入口を使う
-        mpPauseUI->OnPauseInput();
+        mpPauseUI->ToggleEnabled();
     }
 }
 
@@ -272,11 +270,59 @@ void TutorialScene::Draw()
         mpBackgroundUI->DrawBackground();
     }
 
-    // メッセージウィンドウはMessageUIとしてUIManagerが描画する
     Scene::Draw();
+
+    // -- メッセージウィンドウ描画 (左上に大きく配置) -- //
+    constexpr int boxLeft = 30;
+    constexpr int boxTop = 25;
+    constexpr int boxRight = 920;  // ★大きな文字が余裕で収まるように横幅を拡大
+    constexpr int boxBottom = 165;  // ★縦幅も140pxに拡大
+
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 190);
+    DrawBox(boxLeft, boxTop, boxRight, boxBottom, GetColor(0, 0, 0), TRUE);
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+    // 外枠を2重線にしてはっきり見やすくする
+    DrawBox(boxLeft, boxTop, boxRight, boxBottom, GetColor(255, 255, 255), FALSE);
+    DrawBox(boxLeft + 2, boxTop + 2, boxRight - 2, boxBottom - 2, GetColor(255, 255, 255), FALSE);
+
+    // -- テキストをウィンドウ内に大きく描画（改行対応） -- //
+    if (mMessageFontHandle != -1 && mpMessageUI != nullptr)
+    {
+        const std::string visibleText = mTypewriter.GetVisibleText();
+
+        constexpr int textX = boxLeft + 30; // 左端から30px内側
+        constexpr int textY = boxTop + 25;  // 上端から25px内側
+        constexpr int lineSpacing = 48;     // ★36pxフォントに合わせて行間も広く(48px)
+
+        size_t newlinePos = visibleText.find('\n');
+        if (newlinePos == std::string::npos)
+        {
+            DrawStringToHandle(textX, textY, visibleText.c_str(), GetColor(255, 255, 255), mMessageFontHandle);
+        }
+        else
+        {
+            std::string line1 = visibleText.substr(0, newlinePos);
+            std::string line2 = visibleText.substr(newlinePos + 1);
+
+            DrawStringToHandle(textX, textY, line1.c_str(), GetColor(255, 255, 255), mMessageFontHandle);
+            DrawStringToHandle(textX, textY + lineSpacing, line2.c_str(), GetColor(255, 255, 255), mMessageFontHandle);
+        }
+    }
+
+    // Effekseer版ゴールエフェクトを最前面に描画
+    m_goalEffect.Draw();
 }
 
 void TutorialScene::Finalize()
 {
+    m_goalEffect.Clear();
+
+    if (mMessageFontHandle != -1)
+    {
+        DeleteFontToHandle(mMessageFontHandle);
+        mMessageFontHandle = -1;
+    }
+
     Scene::Finalize();
 }

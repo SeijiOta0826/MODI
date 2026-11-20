@@ -2,6 +2,8 @@
 
 #include "Scene.h"
 #include "ItemRecord.h"		// StageFlags を使うため
+#include "GoalEffect.h"
+#include "EffectDanger.h"
 
 class Player;
 class Goal;
@@ -39,7 +41,7 @@ private:
     void UpdateShapeInput();        // 変形キーで変形UIを開閉する
     void UpdateRestartInput(float deltaTime);
     void UpdateItems();             // Item の取得状態を確認する
-
+    void UpdateDangerEffect(); //Playerの危険を知らせるUIの表示
 private:
     PlayState mState = PlayState::Playing;
 
@@ -55,5 +57,10 @@ private:
     PlayerShapeUI* mpShapeUI = nullptr;
     StageBackGround* mpBackgroundUI = nullptr;
     KitchenFrame* mpKitchenFrame = nullptr;
+
+    GoalEffect m_goalEffect;
+
+    
+    EffectDanger m_dangerEffect;
 
 };
