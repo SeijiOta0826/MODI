@@ -4,6 +4,7 @@
 #include "Master.h"
 #include "Scene.h"
 #include "ObjectManager.h"
+#include "ClearSequence.h"
 #include "UIManager.h"
 
 // -- Manager(グローバル) -- //
@@ -29,6 +30,7 @@
 #include "ClearUI.h"
 #include "ItemHUD.h"
 #include "RespawnUI.h"
+#include "Transform.h"
 
 // -- Effect -- //
 #include "EffectManager.h"
@@ -89,10 +91,17 @@ void GameScene::Update(float deltaTime)
 	switch (mState)
 	{
 	case PlayState::Playing:
+		// -- 通常プレイ中の更新 -- //
 		UpdatePlaying(deltaTime);
 		break;
 
+	case PlayState::Clearing:
+		// -- ゴール時のスロー・ズーム演出を更新 -- //
+		UpdateClearing(deltaTime);
+		break;
+
 	case PlayState::Cleared:
+		// -- クリア後の更新 -- //
 		UpdateCleared(deltaTime);
 		break;
 	}
@@ -125,14 +134,13 @@ void GameScene::UpdatePlaying(float deltaTime)
 
 void GameScene::EnterClear()
 {
-	// Item取得状態の記録
-	ItemRecord::GetInstance().Commit(Master::mpSceneManager->GetStageNumber(), mPickedItems);
+	ItemRecord::GetInstance().Commit(Master::mpSceneManager->GetStageNumber(),mPickedItems);
 
-	// ゲーム世界を停止
-	SetWorldTimeScale(0.0f);
+	// ゴールしたプレイヤーの位置を取得
+	const VECTOR playerPosition = mpPlayer->GetModule<Transform>()->GetPosition();
 
-	SoundManager::GetInstance()->StopBGM();
-	SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_GOALVOICE);
+	// プレイヤーを中心にゴール演出を開始
+	mClearSequence.Start(GetCamera(),playerPosition);
 
 	// Effekseer版ゴールエフェクトを画面中央で再生
 	m_goalEffect.Trigger(
@@ -156,7 +164,7 @@ void GameScene::UpdateCleared(float deltaTime)
 	if (!SoundManager::GetInstance()->IsPlayingSE(SoundManager::SOUND_SE::SE_GOALVOICE))
 		SoundManager::GetInstance()->PlayBGM(SoundManager::SOUND_BGM::BGM_Title, false);
 
-	// 時間倍率はEnterClearで0にしてあるので、世界は止まったまま
+	// 時間倍率はゴール演出終了時に0にしてあるので、世界は止まったまま
 	Scene::Update(deltaTime);
 }
 
@@ -278,6 +286,51 @@ void GameScene::UpdateDangerEffect()
 }
 
 
+
+void GameScene::UpdateClearing(float deltaTime)
+{
+	// ゴール演出中はゲーム世界を停止する
+	SetWorldTimeScale(0.0f);
+
+	// ゴール時のカメラズーム演出を更新する
+	mClearSequence.Update(deltaTime);
+
+	// ゴール演出が終了したか確認する
+	if (mClearSequence.IsFinished())
+	{
+		// ゲーム世界を停止する
+		SetWorldTimeScale(0.0f);
+
+		// ゲームBGMを停止する
+		SoundManager::GetInstance()->StopBGM();
+
+		// クリアボイスを再生する
+		SoundManager::GetInstance()->PlaySE(
+			SoundManager::SOUND_SE::SE_GOALVOICE
+		);
+
+		// クリアエフェクトを再生する
+		GetEffectManager()->Play<EffectClear>();
+
+		// ポーズUIを非表示にする
+		if (mpPauseUI != nullptr)
+			mpPauseUI->SetEnabled(false);
+
+		// リスポーンUIを非表示にする
+		if (mpRespawnUI != nullptr)
+			mpRespawnUI->SetEnabled(false);
+
+		// クリアUIを表示する
+		if (mpClearUI != nullptr)
+			mpClearUI->Show(mPickedItems);
+
+		// クリア後の状態へ切り替える
+		mState = PlayState::Cleared;
+	}
+
+	// UI・エフェクト・カメラシェイクなどを更新する
+	Scene::Update(deltaTime);
+}
 
 void GameScene::Finalize()
 {

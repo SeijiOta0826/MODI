@@ -42,36 +42,47 @@ void Graphic::Initialize()
 
 void Graphic::Draw()
 {
-	auto transform = mpGameObject->GetModule<Transform>();
-	if (mnGraphHandle == -1 || transform == nullptr)
-		return;
+    auto transform = mpGameObject->GetModule<Transform>();
+    if (mnGraphHandle == -1 || transform == nullptr)
+        return;
 
-	// -- カメラの揺れ（または移動）を反映した画面上の描画座標に変換 -- //
-	VECTOR drawPosition = transform->GetPosition();
-	if (Master::mpSceneManager != nullptr)
-	{
-		if (auto* currentScene = Master::mpSceneManager->GetCurrentScene())
-		{
-			if (auto* camera = currentScene->GetCamera())
-			{
-				drawPosition = camera->WorldToScreen(drawPosition);
-			}
-		}
-	}
+    // -- カメラのズームと揺れを反映した描画座標に変換 -- //
+    VECTOR drawPosition = transform->GetPosition();
 
-	const auto rotation = transform->GetRotation();
-	const auto scale = transform->GetScale();
+    // -- 通常時はズーム倍率1.0倍 -- //
+    float zoom = 1.0f;
 
-	DrawRotaGraph3(
-		static_cast<int>(drawPosition.x),
-		static_cast<int>(drawPosition.y),
-		static_cast<int>(mvSize.x / 2.0f),
-		static_cast<int>(mvSize.y / 2.0f),
-		scale.x,
-		scale.y,
-		rotation.z,
-		mnGraphHandle,
-		TRUE,
-		FALSE
-	);
+    if (Master::mpSceneManager != nullptr)
+    {
+        if (auto* currentScene = Master::mpSceneManager->GetCurrentScene())
+        {
+            if (auto* camera = currentScene->GetCamera())
+            {
+                // ワールド座標を画面座標へ変換
+                drawPosition = camera->WorldToScreen(drawPosition);
+
+                // 現在のカメラズーム倍率を取得
+                zoom = camera->GetZoom();
+            }
+        }
+    }
+
+    const auto rotation = transform->GetRotation();
+    const auto scale = transform->GetScale();
+
+    DrawRotaGraph3(
+        static_cast<int>(drawPosition.x),
+        static_cast<int>(drawPosition.y),
+        static_cast<int>(mvSize.x / 2.0f),
+        static_cast<int>(mvSize.y / 2.0f),
+
+        // -- GameObjectの拡縮 × カメラのズーム -- //
+        scale.x * zoom,
+        scale.y * zoom,
+
+        rotation.z,
+        mnGraphHandle,
+        TRUE,
+        FALSE
+    );
 }

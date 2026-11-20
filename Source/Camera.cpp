@@ -61,9 +61,19 @@ VECTOR Camera::GetDrawOffset() const noexcept
 
 VECTOR Camera::WorldToScreen(const VECTOR& worldPos) const noexcept
 {
-    return VAdd(worldPos, GetDrawOffset());
-}
+    const VECTOR finalPos = GetFinalPosition();
 
+    // カメラ位置を基準にしたワールド座標の距離を求める
+    const float relativeX = worldPos.x - finalPos.x;
+    const float relativeY = worldPos.y - finalPos.y;
+
+    // ズーム倍率を反映して画面中心へ変換する
+    return VGet(
+        CENTER_X + relativeX * m_zoom,
+        CENTER_Y + relativeY * m_zoom,
+        worldPos.z
+    );
+}
 VECTOR Camera::ScreenToWorld(const VECTOR& screenPos) const noexcept
 {
     return VSub(screenPos, GetDrawOffset());
