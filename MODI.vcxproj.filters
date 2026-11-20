@@ -264,6 +264,9 @@
     <ClCompile Include="Source\UIButton.cpp">
       <Filter>ソース ファイル\UI\UIModule</Filter>
     </ClCompile>
+    <ClCompile Include="Source\FocusUI.cpp">
+      <Filter>ソース ファイル\UI\UIModule</Filter>
+    </ClCompile>
     <ClCompile Include="Source\UIGraphic.cpp">
       <Filter>ソース ファイル\UI\UIModule</Filter>
     </ClCompile>
@@ -480,6 +483,9 @@
       <Filter>ヘッダー ファイル\UI</Filter>
     </ClInclude>
     <ClInclude Include="Source\UIButton.h">
+      <Filter>ヘッダー ファイル\UI\UIModule</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\FocusUI.h">
       <Filter>ヘッダー ファイル\UI\UIModule</Filter>
     </ClInclude>
     <ClInclude Include="Source\UIGraphic.h">

@@ -20,6 +20,13 @@ enum class Button {
 
 	Restart,
 
+	// -- FocusUI(キーボード / パッドでのUI選択)用 -- //
+	FocusUp,
+	FocusDown,
+	FocusLeft,
+	FocusRight,
+	FocusDecide,
+
 	Max
 };
 
@@ -70,6 +77,8 @@ public:
 		int mnKeyboardKey = -1;
 		int mnMouseButton = -1;
 		int mnPadButton = -1;
+
+		int mnSubKeyboardKey = -1;	// 2つ目のキー(テンキー + 矢印キー のように両対応したいとき用)
 	};
 
 	struct AxisBinding {

@@ -9,6 +9,7 @@
 #include "PlayerShapeUI.h"
 
 #include "OperationGuideUI.h"
+#include "FocusUI.h"
 
 void PauseUI::Init()
 {
@@ -60,6 +61,16 @@ void PauseUI::Init()
         "Resource/UI/Pause/Pink Sticky Notes.png",  "操作説明",
         VGet(307.0f, 368.0f, 0.0f),   0.60f,  0.07f });
 
+    // -- キーボード選択(FocusUI) -- //
+    // MenuRootの子なので、メニュー表示中だけ操作を受け付ける(操作説明中は止まる)
+    mpMenuFocus = uiManager->CreateUI<FocusUI>();
+    mpMenuRoot->AddChild(mpMenuFocus);
+    mpMenuFocus->SetParent(mpMenuRoot);
+    mpMenuFocus->Add(mpResumeUI);       // 先頭 = 開いたときに選ばれる
+    mpMenuFocus->Add(mpStageSelectUI);
+    mpMenuFocus->Add(mpTitleUI);
+    mpMenuFocus->Add(mpOperationButton);
+
     // 操作説明（変更なし）
     mpGuideUI = uiManager->CreateUI<OperationGuideUI>();
     AddChild(mpGuideUI);
@@ -105,9 +116,17 @@ UI* PauseUI::CreateStickyNote(const StickyNoteDesc& _desc)
 
 void PauseUI::ChangeState(State _next)
 {
+    const State prev = mState;
     mState = _next;
     mpMenuRoot->SetEnabled(mState == State::Menu);
     mpGuideUI->SetEnabled(mState == State::Guide);
+
+    if (mState == State::Guide)
+        mpGuideUI->OnOpen();    // 「戻る」を選んだ状態から始める
+
+    // 操作説明から戻ったときは「操作説明」の付箋を選んだままにする
+    if (prev == State::Guide && mState == State::Menu)
+        mpMenuFocus->SetFocus(mpOperationButton);
 }
 
 void PauseUI::Update()
@@ -115,33 +134,12 @@ void PauseUI::Update()
     UI::Update();
 
     // 今の状態のボタンだけを判定する（①②の対策）
+    // memo : 以前ここにあった「ステージ選択へ / タイトルへ」の判定は UpdateMenu() と重複していたので削除
+    //        (IsClicked() を1フレームに2回呼ぶと、Space決定が1回目で消費されて2回目が false になるため)
     switch (mState)
     {
         case State::Menu:  UpdateMenu();  break;
         case State::Guide: UpdateGuide(); break;
-    }
-
-    // -- 制限中でない場合のみ、他シーンへの遷移ボタンを有効にする -- //
-    if (!mbResumeOnly)
-    {
-        // -- 「ステージ選択シーンへ」を選択した場合 -- //
-        if (mpStageSelectUI != nullptr &&
-            mpStageSelectUI->GetButton().IsClicked())
-        {
-            SoundManager::GetInstance()->StopBGM();
-            SoundManager::GetInstance()->PlayBGM(SoundManager::SOUND_BGM::BGM_Title);
-            Master::mpSceneManager->RequestScene(SCENE_TYPE::STAGE_SELECT_SCENE);
-        }
-
-        // -- 「タイトルへ」ボタンを選択した場合 -- //
-        // ★ここも必ず if (!mbResumeOnly) の { } の中に入れます！
-        if (mpTitleUI != nullptr &&
-            mpTitleUI->GetButton().IsClicked())
-        {
-            SoundManager::GetInstance()->StopBGM();
-            Master::mpSceneManager->RequestScene(SCENE_TYPE::TITLE_SCENE);
-        }
-
     }
 }
 
@@ -192,4 +190,8 @@ void PauseUI::OnPauseInput()
     // 開くときは必ずメニューから（③の対策）
     ChangeState(State::Menu);
     ToggleEnabled();
+
+    // 開いたときは必ず「再開」を選んだ状態から
+    if (IsEnabled())
+        mpMenuFocus->ResetFocus();
 }

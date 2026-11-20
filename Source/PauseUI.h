@@ -3,6 +3,7 @@
 #include <string>
 
 class OperationGuideUI;
+class FocusUI;
 
 class PauseUI : public UI
 {
@@ -43,6 +44,7 @@ private:
     UI* mpTitleUI = nullptr;
     UI* mpOperationButton = nullptr;
     OperationGuideUI* mpGuideUI = nullptr;
+    FocusUI* mpMenuFocus = nullptr;     // メニューの付箋をキーボードで選ぶ
 
     bool mbResumeOnly = false;
 };

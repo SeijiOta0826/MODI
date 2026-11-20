@@ -4,6 +4,7 @@
 #include "GameConfig.h"
 
 class PlayerPieceUI;
+class FocusUI;
 class Player;
 
 /* memo :
@@ -37,6 +38,7 @@ public:
 
 private:
 	void CreatePieceUI(int _column, int _row);
+	void CreateFocusUI();
 
 	void SyncFromPlayer();		// Playerの現在形状 → UI
 	void RefreshPieceLocks();	// 今の選択状態から、各マスのロック(選べるか)を更新
@@ -54,4 +56,5 @@ private:
 	UI* mpBackUI = nullptr;
 	UI* mpOverlay = nullptr;
 	UI* mpBackGround = nullptr;
+	FocusUI* mpFocus = nullptr;	// キーボードでのマス / ボタン選択
 };

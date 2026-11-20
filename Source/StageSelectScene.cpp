@@ -3,6 +3,7 @@
 #include "UI.h"
 #include "UIManager.h"
 #include "ItemIconUI.h"
+#include "FocusUI.h"
 
 #include "ItemTable.h"
 #include "ItemRecord.h"
@@ -32,6 +33,7 @@ namespace
 	constexpr int LAYER_CARD = 1;		// DeshPanel(灰色の枠ごと覆う)
 	constexpr int LAYER_PANEL = 2;		// ItemPanel
 	constexpr int LAYER_CONTENT = 3;	// 料理名・料理画像・アイテム画像
+	constexpr int LAYER_FOCUS = 4;		// フォーカス枠(料理パネルの中身より上)
 
 	// -- レイアウト(すべて背景画像上のピクセル座標) -- //
 	// 灰色の枠の中心。並びは AllClear.png に合わせる(左ページ 1,2 / 3,4、右ページ 5,6 / 7,8)
@@ -63,6 +65,17 @@ void StageSelectScene::Initialize()
 
 	for (int stage = 1; stage <= GameConfig::STAGE_COUNT; ++stage)
 		CreateStageCard(stage);
+
+	// -- キーボード選択(FocusUI) -- //
+	// 並びは画面上の位置から自動で決まるので、ステージ番号順に登録するだけでよい
+	mpFocus = GetUIManager()->CreateUI<FocusUI>();
+	mpFocus->SetLayer(LAYER_FOCUS);
+	for (UI* panel : mpDishPanels)
+	{
+		panel->GetButton().SetDecideSE(false);	// SE_SELECTUI はシーン側で鳴らす
+		mpFocus->Add(panel);
+	}
+	mpFocus->ResetFocus();
 
 	if (!SoundManager::GetInstance()->IsPlayingBGM(SoundManager::SOUND_BGM::BGM_Title))
 		SoundManager::GetInstance()->PlayBGM(SoundManager::SOUND_BGM::BGM_Title);
@@ -99,6 +112,7 @@ void StageSelectScene::Finalize()
 
 	mpBackground = nullptr;
 	mpDishPanels.fill(nullptr);
+	mpFocus = nullptr;
 
 	Scene::Finalize();
 }

@@ -5,6 +5,7 @@
 #include "ItemIconUI.h"
 #include "ItemTable.h"
 #include "FontManager.h"
+#include "FocusUI.h"
 
 void ClearUI::Init()
 {
@@ -56,9 +57,18 @@ void ClearUI::CreateStageSelectButton()
     mpStageSelectUI->GetText().SetText("ステージ選択へ戻る");
     mpStageSelectUI->GetText().SetColor(GetColor(255, 255, 255));
 
+    mpStageSelectUI->GetHoverScaler().SetActive(true);    // 選ばれていることが分かるように拡大演出を付ける
+
     AddChild(mpStageSelectUI);
     mpStageSelectUI->SetParent(this);
     mpStageSelectUI->SetEnabled(true);
+
+    // -- キーボード選択(FocusUI) -- //
+    // ClearUIの子なので、クリア画面が出ている間だけSpaceを受け付ける
+    mpFocus = GetUIManager()->CreateUI<FocusUI>();
+    AddChild(mpFocus);
+    mpFocus->SetParent(this);
+    mpFocus->Add(mpStageSelectUI);
 }
 
 void ClearUI::CreatePanel() 
@@ -85,6 +95,8 @@ void ClearUI::Show(const ItemRecord::StageFlags& _picked)
         if (mpIcons[i] != nullptr)
             mpIcons[i]->SetPicked(_picked[i]);
     }
+
+    mpFocus->ResetFocus();  // 「ステージ選択へ戻る」を選んだ状態で表示
     SetEnabled(true);
 }
 

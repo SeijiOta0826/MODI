@@ -17,7 +17,7 @@ void InputManager::InitializeButton() {
 	{
 		InputMode::Normal,
 
-		KEY_INPUT_RETURN,
+		KEY_INPUT_SPACE,
 		MOUSE_INPUT_LEFT,
 		PAD_INPUT_1
 	};
@@ -83,6 +83,58 @@ void InputManager::InitializeButton() {
 		KEY_INPUT_E,
 		-1,
 		-1
+	};
+
+	// -- FocusUI用 (テンキー + 矢印キー + パッドの十字キー) -- //
+	mButtonBindings[(int)Button::FocusUp] =
+	{
+		InputMode::Normal,
+
+		KEY_INPUT_NUMPAD8,
+		-1,
+		PAD_INPUT_UP,
+		KEY_INPUT_UP
+	};
+
+	mButtonBindings[(int)Button::FocusDown] =
+	{
+		InputMode::Normal,
+
+		KEY_INPUT_NUMPAD2,
+		-1,
+		PAD_INPUT_DOWN,
+		KEY_INPUT_DOWN
+	};
+
+	mButtonBindings[(int)Button::FocusLeft] =
+	{
+		InputMode::Normal,
+
+		KEY_INPUT_NUMPAD4,
+		-1,
+		PAD_INPUT_LEFT,
+		KEY_INPUT_LEFT
+	};
+
+	mButtonBindings[(int)Button::FocusRight] =
+	{
+		InputMode::Normal,
+
+		KEY_INPUT_NUMPAD6,
+		-1,
+		PAD_INPUT_RIGHT,
+		KEY_INPUT_RIGHT
+	};
+
+	// memo : SPACEはJumpと共用。FocusUIが動くのはゲーム世界が止まっている間だけなので衝突しない
+	mButtonBindings[(int)Button::FocusDecide] =
+	{
+		InputMode::Normal,
+
+		KEY_INPUT_SPACE,
+		-1,
+		PAD_INPUT_1,
+		KEY_INPUT_NUMPAD5
 	};
 }
 
@@ -191,6 +243,11 @@ bool InputManager::IsButtonPressed(
 		return true;
 	}
 
+	if (_binding.mnSubKeyboardKey != -1 &&
+		mKeyboard.IsPress(_binding.mnSubKeyboardKey)) {
+		return true;
+	}
+
 	if (_binding.mnMouseButton != -1 &&
 		mMouse.IsPress(_binding.mnMouseButton)) {
 		return true;
@@ -211,6 +268,11 @@ bool InputManager::IsButtonDown(
 		return true;
 	}
 
+	if (_binding.mnSubKeyboardKey != -1 &&
+		mKeyboard.IsDown(_binding.mnSubKeyboardKey)) {
+		return true;
+	}
+
 	if (_binding.mnMouseButton != -1 &&
 		mMouse.IsDown(_binding.mnMouseButton)) {
 		return true;
@@ -228,6 +290,11 @@ bool InputManager::IsButtonUp(
 	const ButtonBinding& _binding) const {
 	if (_binding.mnKeyboardKey != -1 &&
 		mKeyboard.IsUp(_binding.mnKeyboardKey)) {
+		return true;
+	}
+
+	if (_binding.mnSubKeyboardKey != -1 &&
+		mKeyboard.IsUp(_binding.mnSubKeyboardKey)) {
 		return true;
 	}
 

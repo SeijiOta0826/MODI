@@ -2,6 +2,7 @@
 
 // -- 所有するUI -- //
 #include "PlayerPieceUI.h"
+#include "FocusUI.h"
 
 // -- UIの生成用 -- //
 #include "Master.h"
@@ -24,6 +25,7 @@ namespace
 	constexpr int LAYER_FRAME = 1;
 	constexpr int LAYER_PIECE = 2;
 	constexpr int LAYER_BUTTON = 3;
+	constexpr int LAYER_FOCUS = 4;
 
 	// UIの選択状態を形状マスク(画面基準)にまとめる
 	PlayerShapeMask MakeShapeFromUI(const PlayerShapeUI& _ui)
@@ -106,6 +108,9 @@ void PlayerShapeUI::Init()
 	this->AddChild(mpOverlay);
 	mpOverlay->SetParent(this);
 
+	// -- キーボード選択(FocusUI) -- //
+	CreateFocusUI();
+
 	// -- Playerのアドレス取得 -- //
 	mpPlayer =
 		Master::mpSceneManager
@@ -140,6 +145,31 @@ void PlayerShapeUI::CreatePieceUI(int _column, int _row)
 	));
 }
 
+void PlayerShapeUI::CreateFocusUI()
+{
+	mpFocus = GetUIManager()->CreateUI<FocusUI>();
+	mpFocus->SetLayer(LAYER_FOCUS);
+
+	// 子にしておくと、変形UIが開いている間だけ操作を受け付ける
+	this->AddChild(mpFocus);
+	mpFocus->SetParent(this);
+
+	// 3×3のマス → OK / Back の順に登録(上下左右の移動先は位置から自動で決まる)
+	for (int row = 0; row < GameConfig::PLAYER_PIECE_SIZE; ++row)
+	{
+		for (int column = 0; column < GameConfig::PLAYER_PIECE_SIZE; ++column)
+		{
+			mpFocus->Add(mPieceUI[column][row]);
+		}
+	}
+	mpFocus->Add(mpConfirmUI);
+	mpFocus->Add(mpBackUI);
+
+	// 開いたときは中央のマスから
+	const int center = GameConfig::PLAYER_PIECE_SIZE / 2;
+	mpFocus->SetDefaultFocus(mPieceUI[center][center]);
+}
+
 void PlayerShapeUI::Open()
 {
 	if (mpPlayer == nullptr)
@@ -150,6 +180,7 @@ void PlayerShapeUI::Open()
 	SyncFromPlayer();
 	RefreshPieceLocks();
 
+	mpFocus->ResetFocus();
 	SetEnabled(true);
 }
 

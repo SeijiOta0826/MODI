@@ -6,6 +6,7 @@
 #include <array>
 
 class ItemIconUI;
+class FocusUI;
 
 class ClearUI : public UI
 {
@@ -29,4 +30,5 @@ private:
     std::array<ItemIconUI*, GameConfig::MAX_ITEMS_PER_STAGE> mpIcons{}; // ItemアイコンのUI
     UI* mpStageSelectUI = nullptr;                                      // 「ステージ選択シーンへ」のボタン
     UI* mpPanel = nullptr;                                              // パネル
+    FocusUI* mpFocus = nullptr;                                         // キーボード(Space)で押せるようにする
 };

@@ -4,6 +4,7 @@
 #include "UIHoverScaler.h"
 
 class UI;
+class FocusUI;
 
 class TitleScene : public Scene
 {
@@ -24,4 +25,5 @@ private:
 	UI* mpLogo = nullptr;		// ロゴ画像
 	UI* mpStartButton = nullptr;
 	UI* mpQuitButton = nullptr;
+	FocusUI* mpFocus = nullptr;	// キーボードでのボタン選択
 };
