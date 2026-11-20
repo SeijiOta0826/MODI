@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Scene.h"
+#include "ClearSequence.h"
 #include "ItemRecord.h"		// StageFlags を使うため
 
 class Player;
@@ -27,11 +28,13 @@ private:
     enum class PlayState
     {
         Playing,    // 通常プレイ（ポーズ含む）
+        Clearing,	// ゴール演出中
         Cleared,    // クリア後
     };
 
 private:
     void UpdatePlaying(float deltaTime);    // Playing中の更新
+    void UpdateClearing(float deltaTime);   // Clearing中の更新
     void UpdateCleared(float deltaTime);    // Cleared中の更新
     void EnterClear();                      // Playing → Cleared への切り替え（1回だけ呼ばれる）
 
@@ -55,5 +58,6 @@ private:
     PlayerShapeUI* mpShapeUI = nullptr;
     StageBackGround* mpBackgroundUI = nullptr;
     KitchenFrame* mpKitchenFrame = nullptr;
+    ClearSequence mClearSequence;
 
 };
