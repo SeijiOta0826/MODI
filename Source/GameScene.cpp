@@ -288,6 +288,8 @@ void GameScene::UpdateDangerEffect()
 	}
 
 	m_dangerEffect.Update(isNearSpike, playerPos.x, playerPos.y);
+}
+
 void GameScene::UpdateClearing(float deltaTime)
 {
 	// ゴール演出中はゲーム世界を停止する
@@ -311,7 +313,7 @@ void GameScene::UpdateClearing(float deltaTime)
 		);
 
 		// クリアエフェクトを再生する
-		GetEffectManager()->Play<EffectClear>();
+		GetEffectManager()->Play<GoalEffect>();
 
 		// ポーズUIを非表示にする
 		if (mpPauseUI != nullptr)
