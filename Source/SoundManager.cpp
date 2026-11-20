@@ -146,6 +146,9 @@ void SoundManager::LoadBGM(SOUND_BGM bgm, std::string filename)
 		return;   // 読み込み失敗していたら何もしない
 	}
 
+	// 今の音量設定を反映しておく(後から読み込んだBGMも同じ音量で鳴るように)
+	ChangeVolumeSoundMem(ToDxVolume(mnBgmVolumeLevel), handle);
+
 	// 読み込んだハンドルをリストに追加
 	mnBgmHandleList.push_back(std::pair<SOUND_BGM, int>(bgm, handle));
 }
@@ -174,6 +177,9 @@ void SoundManager::LoadSE(SOUND_SE se, std::string filename)
 	{
 		return;   // 読み込み失敗していたら何もしない
 	}
+
+	// 今の音量設定を反映しておく
+	ChangeVolumeSoundMem(ToDxVolume(mnSeVolumeLevel), handle);
 
 	// 読み込んだハンドルをリストに追加
 	mnSeHandleList.push_back(std::pair<SOUND_SE, int>(se, handle));
@@ -220,3 +226,49 @@ bool SoundManager::IsPlayingBGM(SOUND_BGM bgm)
 	return false;   // 読み込まれていないBGMは「再生していない」扱い
 }
 
+// ------------------------------------------------------------
+// 音量調節
+// ------------------------------------------------------------
+void SoundManager::SetBGMVolume(int level)
+{
+	mnBgmVolumeLevel = ClampVolumeLevel(level);
+	ApplyBGMVolume();
+}
+
+void SoundManager::SetSEVolume(int level)
+{
+	mnSeVolumeLevel = ClampVolumeLevel(level);
+	ApplySEVolume();
+}
+
+int SoundManager::ClampVolumeLevel(int level)
+{
+	if (level < 0)
+		return 0;
+	if (level > VOLUME_LEVEL_MAX)
+		return VOLUME_LEVEL_MAX;
+	return level;
+}
+
+int SoundManager::ToDxVolume(int level)
+{
+	// ChangeVolumeSoundMem は 0(無音) ～ 255(最大)
+	return 255 * level / VOLUME_LEVEL_MAX;
+}
+
+void SoundManager::ApplyBGMVolume()
+{
+	// memo : ChangeVolumeSoundMem は再生中の音にもすぐ効き、以降の再生にも残り続ける
+	for (const auto& pair : mnBgmHandleList)
+	{
+		ChangeVolumeSoundMem(ToDxVolume(mnBgmVolumeLevel), pair.second);
+	}
+}
+
+void SoundManager::ApplySEVolume()
+{
+	for (const auto& pair : mnSeHandleList)
+	{
+		ChangeVolumeSoundMem(ToDxVolume(mnSeVolumeLevel), pair.second);
+	}
+}

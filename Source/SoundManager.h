@@ -72,6 +72,23 @@ public:     // サウンド再生系
 	bool IsPlayingSE(SOUND_SE se);
 	bool IsPlayingBGM(SOUND_BGM bgm);
 
+public:     // 音量調節(ConfigUIから使う)
+
+	static constexpr int VOLUME_LEVEL_MAX = 10;	// 音量の段階数(0 = 無音 ～ 10 = 最大)
+
+	// 音量を段階で設定する(範囲外の値は 0～VOLUME_LEVEL_MAX に収める)
+	void SetBGMVolume(int level);
+	void SetSEVolume(int level);
+
+	int GetBGMVolume() const { return mnBgmVolumeLevel; }
+	int GetSEVolume() const { return mnSeVolumeLevel; }
+
+private:
+	static int ClampVolumeLevel(int level);
+	static int ToDxVolume(int level);		// 段階 → DxLibの音量(0～255)
+	void ApplyBGMVolume();					// 読み込み済みの全BGMに音量を反映
+	void ApplySEVolume();					// 読み込み済みの全SEに音量を反映
+
 private:     // メンバ変数
 	SOUND_BGM mnNowPlayingBgm;   // 現在再生されているBGMの種類
 	SOUND_SE mnNowPlayingSe;     // 現在再生されているSEの種類
@@ -82,4 +99,7 @@ private:     // メンバ変数
 	int mGameBGMHandle;
 
 	bool mIsPaused = false;
+
+	int mnBgmVolumeLevel = VOLUME_LEVEL_MAX;	// BGMの音量(段階)
+	int mnSeVolumeLevel = VOLUME_LEVEL_MAX;		// SEの音量(段階)
 };

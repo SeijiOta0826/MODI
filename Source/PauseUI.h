@@ -3,6 +3,7 @@
 #include <string>
 
 class OperationGuideUI;
+class ConfigUI;
 class FocusUI;
 
 class PauseUI : public UI
@@ -16,7 +17,7 @@ public:
     void SetResumeOnly(bool _resumeOnly) { mbResumeOnly = _resumeOnly; }
 
 private:
-    enum class State { Menu, Guide };
+    enum class State { Menu, Guide, Config };
 
     // ★追加：付箋1枚分の設定をまとめる構造体
     struct StickyNoteDesc
@@ -31,6 +32,7 @@ private:
     void ChangeState(State _next);
     void UpdateMenu();
     void UpdateGuide();
+    void UpdateConfig();
     UI* CreateStickyNote(const StickyNoteDesc& _desc);  // ★CreateMenuButtonから置き換え
 
 private:
@@ -43,7 +45,9 @@ private:
     UI* mpStageSelectUI = nullptr;
     UI* mpTitleUI = nullptr;
     UI* mpOperationButton = nullptr;
+    UI* mpConfigButton = nullptr;       // ★追加：設定(Config)の付箋
     OperationGuideUI* mpGuideUI = nullptr;
+    ConfigUI* mpConfigUI = nullptr;     // ★追加：設定画面
     FocusUI* mpMenuFocus = nullptr;     // メニューの付箋をキーボードで選ぶ
 
     bool mbResumeOnly = false;
