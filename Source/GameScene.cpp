@@ -4,7 +4,6 @@
 #include "Master.h"
 #include "Scene.h"
 #include "ObjectManager.h"
-#include "ClearSequence.h"
 #include "UIManager.h"
 
 // -- Manager(グローバル) -- //
@@ -22,6 +21,8 @@
 #include "Goal.h"
 #include "Item.h"
 #include "ItemTable.h"
+#include "Spike.h"
+#include "Transform.h"
 
 // -- UI -- //
 #include "StageBackGround.h"
@@ -30,13 +31,10 @@
 #include "ClearUI.h"
 #include "ItemHUD.h"
 #include "RespawnUI.h"
-#include "Transform.h"
 
 // -- Effect -- //
 #include "EffectManager.h"
 #include "KitchenFrame.h"
-#include "Spike.h"
-#include "Transform.h"
 
 // -- 外部ライブラリ -- //
 #include <DxLib.h>
@@ -48,6 +46,7 @@ void GameScene::Initialize()
 {
 	m_goalEffect.Clear();
 	m_dangerEffect.Clear();
+
 	// -- ステージの生成 -- //
 	auto* stage = new Stage();
 	std::string stageFileName =
@@ -91,17 +90,10 @@ void GameScene::Update(float deltaTime)
 	switch (mState)
 	{
 	case PlayState::Playing:
-		// -- 通常プレイ中の更新 -- //
 		UpdatePlaying(deltaTime);
 		break;
 
-	case PlayState::Clearing:
-		// -- ゴール時のスロー・ズーム演出を更新 -- //
-		UpdateClearing(deltaTime);
-		break;
-
 	case PlayState::Cleared:
-		// -- クリア後の更新 -- //
 		UpdateCleared(deltaTime);
 		break;
 	}
@@ -128,19 +120,24 @@ void GameScene::UpdatePlaying(float deltaTime)
 	Scene::Update(deltaTime);
 	UpdateItems();
 	UpdateDangerEffect();
+
 	if (mpGoal != nullptr && mpGoal->IsPlayerTouching())
 		EnterClear();
 }
 
 void GameScene::EnterClear()
 {
-	ItemRecord::GetInstance().Commit(Master::mpSceneManager->GetStageNumber(),mPickedItems);
+	// Item取得状態の記録
+	ItemRecord::GetInstance().Commit(Master::mpSceneManager->GetStageNumber(), mPickedItems);
 
-	// ゴールしたプレイヤーの位置を取得
-	const VECTOR playerPosition = mpPlayer->GetModule<Transform>()->GetPosition();
+	// ゲーム世界を停止
+	SetWorldTimeScale(0.0f);
 
-	// プレイヤーを中心にゴール演出を開始
-	mClearSequence.Start(GetCamera(),playerPosition);
+	SoundManager::GetInstance()->StopBGM();
+	SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_GOALVOICE);
+
+	// クリア時にDangerエフェクトを消す
+	m_dangerEffect.Clear();
 
 	// Effekseer版ゴールエフェクトを画面中央で再生
 	m_goalEffect.Trigger(
@@ -152,8 +149,6 @@ void GameScene::EnterClear()
 	if (mpRespawnUI != nullptr)
 		mpRespawnUI->SetEnabled(false);
 	mpClearUI->Show(mPickedItems);
-	// クリア時にDangerエフェクトが残っていたら消す
-	m_dangerEffect.Clear();
 
 	mState = PlayState::Cleared;
 }
@@ -164,7 +159,7 @@ void GameScene::UpdateCleared(float deltaTime)
 	if (!SoundManager::GetInstance()->IsPlayingSE(SoundManager::SOUND_SE::SE_GOALVOICE))
 		SoundManager::GetInstance()->PlayBGM(SoundManager::SOUND_BGM::BGM_Title, false);
 
-	// 時間倍率はゴール演出終了時に0にしてあるので、世界は止まったまま
+	// 時間倍率はEnterClearで0にしてあるので、世界は止まったまま
 	Scene::Update(deltaTime);
 }
 
@@ -183,8 +178,9 @@ void GameScene::Draw()
 		mpKitchenFrame->Draw();
 	}
 
-	//Effekseer版プレイヤーUIを描画
+	// Effekseer版Dangerエフェクトを描画
 	m_dangerEffect.Draw();
+
 	// Effekseer版ゴールエフェクトを最前面に描画
 	m_goalEffect.Draw();
 }
@@ -252,7 +248,7 @@ void GameScene::UpdateDangerEffect()
 		return;
 	}
 
-	// Player の重心座標を取得
+	// Player の座標を取得（private な CalculateCenterOfMass を使わず Transform から取得）
 	auto* playerTransform = mpPlayer->GetModule<Transform>();
 	if (playerTransform == nullptr)
 	{
@@ -285,57 +281,11 @@ void GameScene::UpdateDangerEffect()
 	m_dangerEffect.Update(isNearSpike, playerPos.x, playerPos.y);
 }
 
-
-
-void GameScene::UpdateClearing(float deltaTime)
-{
-	// ゴール演出中はゲーム世界を停止する
-	SetWorldTimeScale(0.0f);
-
-	// ゴール時のカメラズーム演出を更新する
-	mClearSequence.Update(deltaTime);
-
-	// ゴール演出が終了したか確認する
-	if (mClearSequence.IsFinished())
-	{
-		// ゲーム世界を停止する
-		SetWorldTimeScale(0.0f);
-
-		// ゲームBGMを停止する
-		SoundManager::GetInstance()->StopBGM();
-
-		// クリアボイスを再生する
-		SoundManager::GetInstance()->PlaySE(
-			SoundManager::SOUND_SE::SE_GOALVOICE
-		);
-
-		// クリアエフェクトを再生する
-		GetEffectManager()->Play<EffectClear>();
-
-		// ポーズUIを非表示にする
-		if (mpPauseUI != nullptr)
-			mpPauseUI->SetEnabled(false);
-
-		// リスポーンUIを非表示にする
-		if (mpRespawnUI != nullptr)
-			mpRespawnUI->SetEnabled(false);
-
-		// クリアUIを表示する
-		if (mpClearUI != nullptr)
-			mpClearUI->Show(mPickedItems);
-
-		// クリア後の状態へ切り替える
-		mState = PlayState::Cleared;
-	}
-
-	// UI・エフェクト・カメラシェイクなどを更新する
-	Scene::Update(deltaTime);
-}
-
 void GameScene::Finalize()
 {
 	m_goalEffect.Clear();
 	m_dangerEffect.Clear();
+
 	if (mpKitchenFrame != nullptr)
 	{
 		delete mpKitchenFrame;
