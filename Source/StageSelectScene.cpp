@@ -97,6 +97,8 @@ void StageSelectScene::Update(float _deltaTime)
 		break;
 	}
 
+	ToTitle();
+
 	Scene::Update(_deltaTime);
 }
 
@@ -264,6 +266,14 @@ void StageSelectScene::StretchImage(UI* _ui, float _width, float _height) const
 		_height * mfBgScaleY / size.y,
 		0.0f
 	));
+}
+
+void StageSelectScene::ToTitle()
+{
+	if (InputManager::GetInstance().GetButtonDown(Button::ToTitle))
+	{
+		Master::mpSceneManager->RequestScene(SCENE_TYPE::TITLE_SCENE);
+	}
 }
 
 VECTOR StageSelectScene::ToUIPosition(float _x, float _y) const

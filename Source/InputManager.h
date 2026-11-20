@@ -20,6 +20,8 @@ enum class Button {
 
 	Restart,
 
+	ToTitle,
+
 	// -- FocusUI(キーボード / パッドでのUI選択)用 -- //
 	FocusUp,
 	FocusDown,

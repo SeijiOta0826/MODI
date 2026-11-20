@@ -141,10 +141,10 @@ void Game::Run()
         && !m_sceneManager.IsQuitRequested()
         && ProcessMessage() == 0) {
 
-        if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) {
+        /*if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) {
             m_isRunning = false;
             break;
-        }
+        }*/
         
         const auto currentTime = std::chrono::steady_clock::now();
         std::chrono::duration<double> frameTime = currentTime - m_lastFrameTime;

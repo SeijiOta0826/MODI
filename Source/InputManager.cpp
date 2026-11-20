@@ -76,6 +76,15 @@ void InputManager::InitializeButton() {
 		-1		// パッド対応するならここに PAD_INPUT_x
 	};
 
+	mButtonBindings[(int)Button::ToTitle] =
+	{
+		InputMode::Normal,
+
+		KEY_INPUT_ESCAPE,
+		-1,
+		-1
+	};
+
 	mButtonBindings[(int)Button::Shape] =
 	{
 		InputMode::Normal,

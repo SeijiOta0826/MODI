@@ -36,6 +36,7 @@ private:
     void PlaceImage(UI* _ui, float _x, float _y, int _layer) const;     // レイヤーと位置
     void FitImage(UI* _ui, float _width, float _height) const;          // 比率を保って枠内に収める
     void StretchImage(UI* _ui, float _width, float _height) const;      // 比率を無視して引き伸ばす
+    void ToTitle();
     VECTOR ToUIPosition(float _x, float _y) const;                      // 背景画像の座標 → UIのPosition
 
 private:
