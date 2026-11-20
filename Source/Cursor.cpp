@@ -11,8 +11,8 @@
 namespace
 {
     // -- ホットスポットの調整に用いる定数 -- //
-    constexpr int offsetX = -50;
-    constexpr int offsetY = -100;
+    constexpr int offsetX = -43;
+    constexpr int offsetY = -95;
 }
 
 void Cursor::Initialize()

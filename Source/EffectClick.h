@@ -14,7 +14,7 @@ public:
     static constexpr const char* EFFECT_PATH = "Resource/Effect/Effekseer/Click/Click.efkefc";
 
     // 読み込み時の拡大率（DXライブラリの2Dでは 1.0f ≒ 1px のため、まず 40.0f を設定）
-    static constexpr float LOAD_SCALE = 10.0f;
+    static constexpr float LOAD_SCALE = 27.0f;
 
     // 再生時の追加倍率（通常は 1.0f のままでOK）
     static constexpr float PLAY_SCALE = 1.0f;

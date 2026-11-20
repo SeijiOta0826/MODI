@@ -32,8 +32,9 @@
 
 // -- Effect -- //
 #include "EffectManager.h"
-#include "EffectClear.h"
 #include "KitchenFrame.h"
+#include "Spike.h"
+#include "Transform.h"
 
 // -- 外部ライブラリ -- //
 #include <DxLib.h>
@@ -43,6 +44,8 @@
 
 void GameScene::Initialize()
 {
+	m_goalEffect.Clear();
+	m_dangerEffect.Clear();
 	// -- ステージの生成 -- //
 	auto* stage = new Stage();
 	std::string stageFileName =
@@ -64,7 +67,7 @@ void GameScene::Initialize()
 
 	// -- 「ClearUI」の生成 -- //
 	mpClearUI = GetUIManager()->CreateUI<ClearUI>();
-	
+
 	// -- 「PauseUI」の生成 -- //
 	mpPauseUI = GetUIManager()->CreateUI<PauseUI>();
 	mpPauseUI->SetEnabled(false);
@@ -93,6 +96,8 @@ void GameScene::Update(float deltaTime)
 		UpdateCleared(deltaTime);
 		break;
 	}
+
+	m_goalEffect.Update();
 }
 
 void GameScene::UpdatePlaying(float deltaTime)
@@ -113,7 +118,7 @@ void GameScene::UpdatePlaying(float deltaTime)
 	// 更新処理
 	Scene::Update(deltaTime);
 	UpdateItems();
-
+	UpdateDangerEffect();
 	if (mpGoal != nullptr && mpGoal->IsPlayerTouching())
 		EnterClear();
 }
@@ -129,11 +134,18 @@ void GameScene::EnterClear()
 	SoundManager::GetInstance()->StopBGM();
 	SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_GOALVOICE);
 
-	GetEffectManager()->Play<EffectClear>();
+	// Effekseer版ゴールエフェクトを画面中央で再生
+	m_goalEffect.Trigger(
+		ScreenConfig::SCREEN_WIDTH / 2.0f,
+		ScreenConfig::SCREEN_HEIGHT / 2.0f
+	);
+
 	mpPauseUI->SetEnabled(false);
 	if (mpRespawnUI != nullptr)
 		mpRespawnUI->SetEnabled(false);
 	mpClearUI->Show(mPickedItems);
+	// クリア時にDangerエフェクトが残っていたら消す
+	m_dangerEffect.Clear();
 
 	mState = PlayState::Cleared;
 }
@@ -163,11 +175,15 @@ void GameScene::Draw()
 		mpKitchenFrame->Draw();
 	}
 
+	//Effekseer版プレイヤーUIを描画
+	m_dangerEffect.Draw();
+	// Effekseer版ゴールエフェクトを最前面に描画
+	m_goalEffect.Draw();
 }
 
 void GameScene::UpdateShapeInput()
 {
-	if (mpShapeUI != nullptr 
+	if (mpShapeUI != nullptr
 		&& InputManager::GetInstance().GetButtonDown(Button::Shape)
 		&& !GetUIManager()->FindUI<PauseUI>()->IsEnabled())
 		mpShapeUI->OnShapeInput();
@@ -190,36 +206,6 @@ void GameScene::UpdateItems()
 		// ここに来るのは「取った最初のフレーム」だけ
 		mPickedItems[slot] = true;
 		mpItemHUD->SetPicked(slot);
-
-		// -- 取得したアイテム数を数える -- //
-		int pickedCount = 0;
-
-		for (bool isPicked : mPickedItems)
-		{
-			if (isPicked)
-				pickedCount++;
-		}
-
-		// -- 取得数に応じてSEの音程を変える -- //
-		float pitchRate = 1.0f;
-
-		if (pickedCount == 1)
-		{
-			pitchRate = 1.0f;
-		}
-		else if (pickedCount == 2)
-		{
-			pitchRate = 1.3f;
-		}
-		else if (pickedCount >= 3)
-		{
-			pitchRate = 1.6f;
-		}
-
-		SoundManager::GetInstance()->PlaySE(
-			SoundManager::SOUND_SE::SE_ITEM_GETTING,
-			pitchRate
-		);
 
 		if (mpBackgroundUI != nullptr)
 			mpBackgroundUI->SetPicked(slot);
@@ -250,8 +236,53 @@ void GameScene::UpdateRestartInput(float deltaTime)
 		mpPlayer->Respawn();
 }
 
+void GameScene::UpdateDangerEffect()
+{
+	if (mpPlayer == nullptr)
+	{
+		m_dangerEffect.Clear();
+		return;
+	}
+
+	// Player の重心座標を取得
+	auto* playerTransform = mpPlayer->GetModule<Transform>();
+	if (playerTransform == nullptr)
+	{
+		m_dangerEffect.Clear();
+		return;
+	}
+	const VECTOR playerPos = playerTransform->GetPosition();
+
+	// ステージ上の全 Spike との距離をチェック（sqrt を省くため2乗で比較）
+	bool isNearSpike = false;
+	constexpr float dangerDistSq = EffectDanger::DANGER_DISTANCE * EffectDanger::DANGER_DISTANCE;
+
+	for (auto* spike : GetObjectManager()->FindObjects<Spike>())
+	{
+		auto* transform = spike->GetModule<Transform>();
+		if (transform == nullptr)
+			continue;
+
+		const VECTOR spikePos = transform->GetPosition();
+		const float dx = playerPos.x - spikePos.x;
+		const float dy = playerPos.y - spikePos.y;
+
+		if (dx * dx + dy * dy <= dangerDistSq)
+		{
+			isNearSpike = true;
+			break;
+		}
+	}
+
+	m_dangerEffect.Update(isNearSpike, playerPos.x, playerPos.y);
+}
+
+
+
 void GameScene::Finalize()
 {
+	m_goalEffect.Clear();
+	m_dangerEffect.Clear();
 	if (mpKitchenFrame != nullptr)
 	{
 		delete mpKitchenFrame;
