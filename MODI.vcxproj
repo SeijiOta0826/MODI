@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\CameraShake.cpp" />
+    <ClCompile Include="Source\ClearSequence.cpp" />
     <ClCompile Include="Source\EffectDanger.cpp" />
     <ClCompile Include="Source\EffekseerManager.cpp" />
     <ClCompile Include="Source\KitchenFrame.cpp" />
@@ -104,6 +105,7 @@
     <ClInclude Include="Source\Box2D.h" />
     <ClInclude Include="Source\Camera.h" />
     <ClInclude Include="Source\CameraShake.h" />
+    <ClInclude Include="Source\ClearSequence.h" />
     <ClInclude Include="Source\EffectDanger.h" />
     <ClInclude Include="Source\EffekseerManager.h" />
     <ClInclude Include="Source\KitchenFrame.h" />

@@ -32,7 +32,6 @@
 #include "ClearUI.h"
 #include "ItemHUD.h"
 #include "RespawnUI.h"
-#include "Transform.h"
 
 // -- Effect -- //
 #include "EffectManager.h"
@@ -136,29 +135,22 @@ void GameScene::UpdatePlaying(float deltaTime)
 
 void GameScene::EnterClear()
 {
-	ItemRecord::GetInstance().Commit(Master::mpSceneManager->GetStageNumber(),mPickedItems);
+	ItemRecord::GetInstance().Commit(Master::mpSceneManager->GetStageNumber(), mPickedItems);
+
+	// クリア演出に入ったら Danger エフェクトを消す
+	m_dangerEffect.Clear();
 
 	// ゴールしたプレイヤーの位置を取得
 	const VECTOR playerPosition = mpPlayer->GetModule<Transform>()->GetPosition();
 
 	// プレイヤーを中心にゴール演出を開始
-	mClearSequence.Start(GetCamera(),playerPosition);
+	mClearSequence.Start(GetCamera(), playerPosition);
 
-	// クリア時にDangerエフェクトを消す
-	m_dangerEffect.Clear();
-
-	// Effekseer版ゴールエフェクトを画面中央で再生
-	m_goalEffect.Trigger(
-		ScreenConfig::SCREEN_WIDTH / 2.0f,
-		ScreenConfig::SCREEN_HEIGHT / 2.0f
-	);
-
-	mpPauseUI->SetEnabled(false);
+	if (mpPauseUI != nullptr)
+		mpPauseUI->SetEnabled(false);
 	if (mpRespawnUI != nullptr)
 		mpRespawnUI->SetEnabled(false);
-	mpClearUI->Show(mPickedItems);
 
-	mState = PlayState::Cleared;
 	mState = PlayState::Clearing;
 }
 
@@ -312,8 +304,11 @@ void GameScene::UpdateClearing(float deltaTime)
 			SoundManager::SOUND_SE::SE_GOALVOICE
 		);
 
-		// クリアエフェクトを再生する
-		GetEffectManager()->Play<GoalEffect>();
+		// Effekseer版ゴールエフェクトを画面中央で再生する
+		m_goalEffect.Trigger(
+			ScreenConfig::SCREEN_WIDTH / 2.0f,
+			ScreenConfig::SCREEN_HEIGHT / 2.0f
+		);
 
 		// ポーズUIを非表示にする
 		if (mpPauseUI != nullptr)
