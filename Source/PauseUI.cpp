@@ -9,6 +9,7 @@
 #include "PlayerShapeUI.h"
 
 #include "OperationGuideUI.h"
+#include "ConfigUI.h"
 #include "FocusUI.h"
 
 void PauseUI::Init()
@@ -53,6 +54,11 @@ void PauseUI::Init()
         "Resource/UI/Pause/Orange Sticky Notes.png", "ステージ選択シーンへ",
         VGet(234.0f, -19.0f, 0.0f),   0.70f, -0.08f });
 
+    // ★追加：左の真ん中の付箋 = 設定
+    mpConfigButton = CreateStickyNote({
+        "Resource/UI/Pause/Green Sticky Note.png",  "設定",
+        VGet(-380.0f, 15.0f, 0.0f),   0.59f,  0.03f });
+
     mpTitleUI = CreateStickyNote({
         "Resource/UI/Pause/Green Sticky Note.png",  "タイトルへ",
         VGet(-387.0f, 262.0f, 0.0f),  0.59f, -0.02f });
@@ -68,6 +74,7 @@ void PauseUI::Init()
     mpMenuFocus->SetParent(mpMenuRoot);
     mpMenuFocus->Add(mpResumeUI);       // 先頭 = 開いたときに選ばれる
     mpMenuFocus->Add(mpStageSelectUI);
+    mpMenuFocus->Add(mpConfigButton);
     mpMenuFocus->Add(mpTitleUI);
     mpMenuFocus->Add(mpOperationButton);
 
@@ -75,6 +82,11 @@ void PauseUI::Init()
     mpGuideUI = uiManager->CreateUI<OperationGuideUI>();
     AddChild(mpGuideUI);
     mpGuideUI->SetParent(this);
+
+    // ★追加：設定画面(操作説明と同じく PauseUI の子)
+    mpConfigUI = uiManager->CreateUI<ConfigUI>();
+    AddChild(mpConfigUI);
+    mpConfigUI->SetParent(this);
 
     ChangeState(State::Menu);
 }
@@ -120,13 +132,19 @@ void PauseUI::ChangeState(State _next)
     mState = _next;
     mpMenuRoot->SetEnabled(mState == State::Menu);
     mpGuideUI->SetEnabled(mState == State::Guide);
+    mpConfigUI->SetEnabled(mState == State::Config);
 
     if (mState == State::Guide)
         mpGuideUI->OnOpen();    // 「戻る」を選んだ状態から始める
+    if (mState == State::Config)
+        mpConfigUI->OnOpen();   // BGMの「－」を選んだ状態から始める
 
-    // 操作説明から戻ったときは「操作説明」の付箋を選んだままにする
-    if (prev == State::Guide && mState == State::Menu)
-        mpMenuFocus->SetFocus(mpOperationButton);
+    // サブ画面から戻ったときは、開いた付箋を選んだままにする
+    if (mState == State::Menu)
+    {
+        if (prev == State::Guide)  mpMenuFocus->SetFocus(mpOperationButton);
+        if (prev == State::Config) mpMenuFocus->SetFocus(mpConfigButton);
+    }
 }
 
 void PauseUI::Update()
@@ -140,6 +158,7 @@ void PauseUI::Update()
     {
         case State::Menu:  UpdateMenu();  break;
         case State::Guide: UpdateGuide(); break;
+        case State::Config: UpdateConfig(); break;
     }
 }
 
@@ -171,6 +190,11 @@ void PauseUI::UpdateMenu()
         ChangeState(State::Guide);
         return;     // 同じフレームで戻るボタンを判定しない
     }
+    if (mpConfigButton->GetButton().IsClicked())
+    {
+        ChangeState(State::Config);
+        return;
+    }
 }
 
 void PauseUI::UpdateGuide()
@@ -179,10 +203,16 @@ void PauseUI::UpdateGuide()
         ChangeState(State::Menu);
 }
 
+void PauseUI::UpdateConfig()
+{
+    if (mpConfigUI->IsBackRequested())
+        ChangeState(State::Menu);
+}
+
 void PauseUI::OnPauseInput()
 {
-    // 操作説明中なら → メニューへ戻るだけ
-    if (IsEnabled() && mState == State::Guide)
+    // 操作説明中・設定中なら → メニューへ戻るだけ
+    if (IsEnabled() && mState != State::Menu)
     {
         ChangeState(State::Menu);
         return;

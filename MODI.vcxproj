@@ -61,6 +61,7 @@
     <ClCompile Include="Source\Master.cpp" />
     <ClCompile Include="Source\Mouse.cpp" />
     <ClCompile Include="Source\ObjectManager.cpp" />
+    <ClCompile Include="Source\ConfigUI.cpp" />
     <ClCompile Include="Source\OperationGuideUI.cpp" />
     <ClCompile Include="Source\PauseUI.cpp" />
     <ClCompile Include="Source\Player.cpp" />
@@ -135,6 +136,7 @@
     <ClInclude Include="Source\ItemIconUI.h" />
     <ClInclude Include="Source\ItemRecord.h" />
     <ClInclude Include="Source\ItemTable.h" />
+    <ClInclude Include="Source\ConfigUI.h" />
     <ClInclude Include="Source\OperationGuideUI.h" />
     <ClInclude Include="Source\StageSelectScene.h" />
     <ClInclude Include="Source\UIFloatingMotion.h" />
