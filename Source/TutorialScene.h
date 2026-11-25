@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include "UITypewriterText.h"
 #include "GoalEffect.h"
+#include "EffectHappy.h"
 
 class Player;
 class Goal;
@@ -26,9 +27,11 @@ private:
     void UpdateTutorialStep(float _deltaTime);
     void UpdateShapeUIToggle();
     void UpdatePause();
+    void UpdateHappyEffect();
 
 private:
     // -- オブジェクト参照用 -- //
+    Player* mpPlayer = nullptr;
     Goal* mpGoal = nullptr;
 
     // -- UI -- //
@@ -48,4 +51,5 @@ private:
     bool mbIsClear = false;
     float mfClearTimer = 0.0f;
     GoalEffect m_goalEffect;
+    EffectHappy m_happyEffect;
 };

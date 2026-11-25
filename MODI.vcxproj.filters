@@ -375,9 +375,6 @@
     <ClCompile Include="Source\EffectTrans.cpp">
       <Filter>ソース ファイル\Effect\Player</Filter>
     </ClCompile>
-    <ClCompile Include="Source\EffectClear.cpp">
-      <Filter>ソース ファイル\Effect\Event</Filter>
-    </ClCompile>
     <ClCompile Include="Source\EffectClick.cpp">
       <Filter>ソース ファイル\Effect\UI</Filter>
     </ClCompile>
@@ -431,6 +428,15 @@
     </ClCompile>
     <ClCompile Include="Source\EffekseerManager.cpp">
       <Filter>ソース ファイル\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ClearSequence.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\EffectDanger.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\EffectHappy.cpp">
+      <Filter>ソース ファイル\Effect\Player</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -614,9 +620,6 @@
     <ClInclude Include="Source\EffectClick.h">
       <Filter>ヘッダー ファイル\Effects\UI</Filter>
     </ClInclude>
-    <ClInclude Include="Source\EffectClear.h">
-      <Filter>ヘッダー ファイル\Effects\Event</Filter>
-    </ClInclude>
     <ClInclude Include="Source\EffectRespawn.h">
       <Filter>ヘッダー ファイル\Effects\Player</Filter>
     </ClInclude>
@@ -682,6 +685,15 @@
     </ClInclude>
     <ClInclude Include="Source\EffekseerManager.h">
       <Filter>ヘッダー ファイル\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ClearSequence.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\EffectDanger.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\EffectHappy.h">
+      <Filter>ヘッダー ファイル\Effects\Player</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

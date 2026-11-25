@@ -31,14 +31,15 @@ void TutorialScene::Initialize()
     mbIsClear = false;
     mfClearTimer = 0.0f;
     m_goalEffect.Clear();
+    m_happyEffect.Clear();
 
     // -- 1. 先にステージCSVを読み込む（CSV内の「5」の位置にPlayerが1人だけ生成される） -- //
     auto* stage = new Stage();
     stage->Load("Resource/CSV/Stage/Stage0.csv");
 
     // -- 2. CSVから生成されたPlayerを探してから変形UIを作る -- //
-    auto* player = GetObjectManager()->FindObject<Player>();
-    if (player != nullptr)
+    mpPlayer = GetObjectManager()->FindObject<Player>();
+    if (mpPlayer != nullptr)
     {
         mpShapeUI = GetUIManager()->CreateUI<PlayerShapeUI>();
     }
@@ -124,6 +125,7 @@ void TutorialScene::Update(float _deltaTime)
     // -- 「Skip」ボタンが押された場合 -- //
     if (mpSkipButton != nullptr && mpSkipButton->GetButton().IsClicked())
     {
+        m_happyEffect.Clear();
         InputManager::GetInstance().ConsumeButton(Button::Confirm);
         SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_SELECTUI);
         SoundManager::GetInstance()->StopBGM();
@@ -158,10 +160,12 @@ void TutorialScene::Update(float _deltaTime)
     UpdateTutorialStep(_deltaTime);
 
     Scene::Update(gameDeltaTime);
+    UpdateHappyEffect();
 
     // -- ゴール判定 -- //
     if (mpGoal != nullptr && mpGoal->IsPlayerTouching())
     {
+        m_happyEffect.Clear();
         mbIsClear = true;
         mfClearTimer = 0.0f;
 
@@ -262,6 +266,33 @@ void TutorialScene::UpdateShapeUIToggle()
         mpShapeUI->Open();
 }
 
+void TutorialScene::UpdateHappyEffect()
+{
+    if (mpPlayer == nullptr || mpGoal == nullptr)
+    {
+        m_happyEffect.Clear();
+        return;
+    }
+
+    auto* playerTransform = mpPlayer->GetModule<Transform>();
+    auto* goalTransform = mpGoal->GetModule<Transform>();
+    if (playerTransform == nullptr || goalTransform == nullptr)
+    {
+        m_happyEffect.Clear();
+        return;
+    }
+
+    const VECTOR playerPos = playerTransform->GetPosition();
+    const VECTOR goalPos = goalTransform->GetPosition();
+    const float dx = playerPos.x - goalPos.x;
+    const float dy = playerPos.y - goalPos.y;
+
+    constexpr float happyDistSq = EffectHappy::HAPPY_DISTANCE * EffectHappy::HAPPY_DISTANCE;
+    const bool isNearGoal = (dx * dx + dy * dy <= happyDistSq);
+
+    m_happyEffect.Update(isNearGoal, playerPos.x, playerPos.y);
+}
+
 void TutorialScene::Draw()
 {
     // -- 背景描画 -- //
@@ -310,6 +341,9 @@ void TutorialScene::Draw()
         }
     }
 
+    // Effekseer版Happyエフェクトを描画
+    m_happyEffect.Draw();
+
     // Effekseer版ゴールエフェクトを最前面に描画
     m_goalEffect.Draw();
 }
@@ -317,6 +351,7 @@ void TutorialScene::Draw()
 void TutorialScene::Finalize()
 {
     m_goalEffect.Clear();
+    m_happyEffect.Clear();
 
     if (mMessageFontHandle != -1)
     {

@@ -5,6 +5,7 @@
 #include "ItemRecord.h"		// StageFlags を使うため
 #include "GoalEffect.h"
 #include "EffectDanger.h"
+#include "EffectHappy.h"
 
 class Player;
 class Goal;
@@ -45,6 +46,7 @@ private:
     void UpdateRestartInput(float deltaTime);
     void UpdateItems();             // Item の取得状態を確認する
     void UpdateDangerEffect(); //Playerの危険を知らせるUIの表示
+    void UpdateHappyEffect();  //PlayerがGoalに近づいたときのUI表示
 private:
     PlayState mState = PlayState::Playing;
 
@@ -64,7 +66,8 @@ private:
 
     GoalEffect m_goalEffect;
 
-    
+
     EffectDanger m_dangerEffect;
+    EffectHappy m_happyEffect;
 
 };

@@ -47,6 +47,7 @@ void GameScene::Initialize()
 {
 	m_goalEffect.Clear();
 	m_dangerEffect.Clear();
+	m_happyEffect.Clear();
 
 	// -- ステージの生成 -- //
 	auto* stage = new Stage();
@@ -128,6 +129,7 @@ void GameScene::UpdatePlaying(float deltaTime)
 	Scene::Update(deltaTime);
 	UpdateItems();
 	UpdateDangerEffect();
+	UpdateHappyEffect();
 
 	if (mpGoal != nullptr && mpGoal->IsPlayerTouching())
 		EnterClear();
@@ -137,8 +139,9 @@ void GameScene::EnterClear()
 {
 	ItemRecord::GetInstance().Commit(Master::mpSceneManager->GetStageNumber(), mPickedItems);
 
-	// クリア演出に入ったら Danger エフェクトを消す
+	// クリア演出に入ったら Danger / Happy エフェクトを消す
 	m_dangerEffect.Clear();
+	m_happyEffect.Clear();
 
 	// ゴールしたプレイヤーの位置を取得
 	const VECTOR playerPosition = mpPlayer->GetModule<Transform>()->GetPosition();
@@ -181,6 +184,9 @@ void GameScene::Draw()
 
 	// Effekseer版Dangerエフェクトを描画
 	m_dangerEffect.Draw();
+
+	// Effekseer版Happyエフェクトを描画
+	m_happyEffect.Draw();
 
 	// Effekseer版ゴールエフェクトを最前面に描画
 	m_goalEffect.Draw();
@@ -282,6 +288,33 @@ void GameScene::UpdateDangerEffect()
 	m_dangerEffect.Update(isNearSpike, playerPos.x, playerPos.y);
 }
 
+void GameScene::UpdateHappyEffect()
+{
+	if (mpPlayer == nullptr || mpGoal == nullptr)
+	{
+		m_happyEffect.Clear();
+		return;
+	}
+
+	auto* playerTransform = mpPlayer->GetModule<Transform>();
+	auto* goalTransform = mpGoal->GetModule<Transform>();
+	if (playerTransform == nullptr || goalTransform == nullptr)
+	{
+		m_happyEffect.Clear();
+		return;
+	}
+
+	const VECTOR playerPos = playerTransform->GetPosition();
+	const VECTOR goalPos = goalTransform->GetPosition();
+	const float dx = playerPos.x - goalPos.x;
+	const float dy = playerPos.y - goalPos.y;
+
+	constexpr float happyDistSq = EffectHappy::HAPPY_DISTANCE * EffectHappy::HAPPY_DISTANCE;
+	const bool isNearGoal = (dx * dx + dy * dy <= happyDistSq);
+
+	m_happyEffect.Update(isNearGoal, playerPos.x, playerPos.y);
+}
+
 void GameScene::UpdateClearing(float deltaTime)
 {
 	// ゴール演出中はゲーム世界を停止する
@@ -334,6 +367,7 @@ void GameScene::Finalize()
 {
 	m_goalEffect.Clear();
 	m_dangerEffect.Clear();
+	m_happyEffect.Clear();
 
 	if (mpKitchenFrame != nullptr)
 	{
