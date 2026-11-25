@@ -212,30 +212,39 @@ void TutorialScene::UpdateTutorialStep(float _deltaTime)
             SetTutorialMessage("ナイス！ 次は変形キー[E]を押して、\n豆腐の形を変えてみよう！");
         }
     }
-    // Step 2: 変形UIを開いたらポーズ説明へ
+    // Step 2: 変形UIを開いたら黒いマスの注意とOKスプーンの案内へ
     else if (mnTutorialStep == 2)
     {
         if (mpShapeUI != nullptr && mpShapeUI->IsEnabled())
         {
             mnTutorialStep = 3;
-            SetTutorialMessage("マスをクリックして変形できるよ！\n次は [P]キー でポーズ画面を開いてみよう！");
+            SetTutorialMessage("黒いマスは埋もれて変形できないよ！\n形を決めたら「OK」のスプーンを押そう！");
         }
     }
-    // Step 3: ポーズ画面を開いたら再開の案内へ
+    // Step 3: 変形UIを閉じたらポーズ説明へ
     else if (mnTutorialStep == 3)
+    {
+        if (mpShapeUI != nullptr && !mpShapeUI->IsEnabled())
+        {
+            mnTutorialStep = 4;
+            SetTutorialMessage("ナイス変形！\n次は [P]キー でポーズ画面を開いてみよう！");
+        }
+    }
+    // Step 4: ポーズ画面を開いたら再開の案内へ
+    else if (mnTutorialStep == 4)
     {
         if (mpPauseUI != nullptr && mpPauseUI->IsEnabled())
         {
-            mnTutorialStep = 4;
+            mnTutorialStep = 5;
             SetTutorialMessage("ポーズ画面では再開やステージ選択へ戻れるよ！\n「再開」を押そう！");
         }
     }
-    // Step 4: ポーズ画面を閉じたらゴール案内へ
-    else if (mnTutorialStep == 4)
+    // Step 5: ポーズ画面を閉じたらゴール案内へ
+    else if (mnTutorialStep == 5)
     {
         if (mpPauseUI != nullptr && !mpPauseUI->IsEnabled())
         {
-            mnTutorialStep = 5;
+            mnTutorialStep = 6;
             SetTutorialMessage("バッチリ！\nそれではステージ右にあるゴールを目指そう！");
         }
     }
@@ -306,8 +315,8 @@ void TutorialScene::Draw()
     // -- メッセージウィンドウ描画 (左上に大きく配置) -- //
     constexpr int boxLeft = 30;
     constexpr int boxTop = 25;
-    constexpr int boxRight = 920;  // ★大きな文字が余裕で収まるように横幅を拡大
-    constexpr int boxBottom = 165;  // ★縦幅も140pxに拡大
+    constexpr int boxRight = 920;  // 大きな文字が余裕で収まるように横幅を拡大
+    constexpr int boxBottom = 165;  // 縦幅も140pxに拡大
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 190);
     DrawBox(boxLeft, boxTop, boxRight, boxBottom, GetColor(0, 0, 0), TRUE);
@@ -324,7 +333,7 @@ void TutorialScene::Draw()
 
         constexpr int textX = boxLeft + 30; // 左端から30px内側
         constexpr int textY = boxTop + 25;  // 上端から25px内側
-        constexpr int lineSpacing = 48;     // ★36pxフォントに合わせて行間も広く(48px)
+        constexpr int lineSpacing = 48;     // 36pxフォントに合わせて行間も広く(48px)
 
         size_t newlinePos = visibleText.find('\n');
         if (newlinePos == std::string::npos)
