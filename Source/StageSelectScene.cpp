@@ -4,9 +4,11 @@
 #include "UIManager.h"
 #include "ItemIconUI.h"
 #include "FocusUI.h"
+#include "DifficultySelectUI.h"
 
 #include "ItemTable.h"
 #include "ItemRecord.h"
+#include "GameProgress.h"
 
 #include "Master.h"
 #include "SceneManager.h"
@@ -77,11 +79,28 @@ void StageSelectScene::Initialize()
 	}
 	mpFocus->ResetFocus();
 
+	// -- 難易度選択のポップアップ(ステージを選ぶまでは隠しておく) -- //
+	mpDifficultyUI = GetUIManager()->CreateUI<DifficultySelectUI>();
+	mpDifficultyUI->SetEnabled(false);
+	mState = State::SelectStage;
+
 	if (!SoundManager::GetInstance()->IsPlayingBGM(SoundManager::SOUND_BGM::BGM_Title))
 		SoundManager::GetInstance()->PlayBGM(SoundManager::SOUND_BGM::BGM_Title);
 }
 
 void StageSelectScene::Update(float _deltaTime)
+{
+	switch (mState)
+	{
+	case State::SelectStage:      UpdateSelectStage();      break;
+	case State::SelectDifficulty: UpdateSelectDifficulty(); break;
+	case State::Starting:         break;	// シーン切り替え待ち
+	}
+
+	Scene::Update(_deltaTime);
+}
+
+void StageSelectScene::UpdateSelectStage()
 {
 	for (int i = 0; i < GameConfig::STAGE_COUNT; ++i)
 	{
@@ -90,14 +109,57 @@ void StageSelectScene::Update(float _deltaTime)
 			continue;
 
 		// Confirm を消費し、共通のクリックSE判定をスキップ
+		// FocusDecide も消費する(Space は両方に割り当てられているので、
+		// 開いたポップアップの「Easy」まで同じフレームで押されてしまうのを防ぐ)
 		InputManager::GetInstance().ConsumeButton(Button::Confirm);
+		InputManager::GetInstance().ConsumeButton(Button::FocusDecide);
 		SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_SELECTUI);
 
-		Master::mpSceneManager->RequestGameScene(i + 1);
+		OpenDifficultySelect(i + 1);
 		break;
 	}
+}
 
-	Scene::Update(_deltaTime);
+void StageSelectScene::UpdateSelectDifficulty()
+{
+	switch (mpDifficultyUI->GetResult())
+	{
+	case DifficultySelectUI::Result::Decided:
+		GameProgress::SetDifficulty(mpDifficultyUI->GetSelectedDifficulty());
+		Master::mpSceneManager->RequestGameScene(mnSelectedStage);
+		mState = State::Starting;
+		break;
+
+	case DifficultySelectUI::Result::Back:
+		CloseDifficultySelect();
+		break;
+
+	case DifficultySelectUI::Result::None:
+		break;
+	}
+}
+
+void StageSelectScene::OpenDifficultySelect(int _stage)
+{
+	mnSelectedStage = _stage;
+	mState = State::SelectDifficulty;
+
+	// 後ろのステージ選択は操作できないようにする
+	mpFocus->SetEnabled(false);
+
+	mpDifficultyUI->SetEnabled(true);
+	mpDifficultyUI->OnOpen();
+}
+
+void StageSelectScene::CloseDifficultySelect()
+{
+	mState = State::SelectStage;
+
+	mpDifficultyUI->SetEnabled(false);
+
+	// 戻ったときは、さっき選んだステージを選んだままにする
+	mpFocus->SetEnabled(true);
+	mpFocus->SetFocus(mpDishPanels[mnSelectedStage - 1]);
 }
 
 void StageSelectScene::Draw()
@@ -113,6 +175,7 @@ void StageSelectScene::Finalize()
 	mpBackground = nullptr;
 	mpDishPanels.fill(nullptr);
 	mpFocus = nullptr;
+	mpDifficultyUI = nullptr;
 
 	Scene::Finalize();
 }

@@ -10,6 +10,7 @@
 #include "InputManager.h"
 #include "SoundManager.h"
 #include "ItemRecord.h"
+#include "GameProgress.h"
 
 // -- Config -- //
 #include "GameConfig.h"
@@ -113,6 +114,7 @@ void GameScene::UpdatePlaying(float deltaTime)
 	// 更新処理
 	Scene::Update(deltaTime);
 	UpdateItems();
+	UpdateMissPenalty();
 
 	if (mpGoal != nullptr && mpGoal->IsPlayerTouching())
 		EnterClear();
@@ -224,6 +226,40 @@ void GameScene::UpdateItems()
 		if (mpBackgroundUI != nullptr)
 			mpBackgroundUI->SetPicked(slot);
 	}
+}
+
+void GameScene::UpdateMissPenalty()
+{
+	if (mpPlayer == nullptr)
+		return;
+
+	// Easy でも毎フレーム受け取って消しておく(フラグが溜まったままにならないように)
+	const bool missed = mpPlayer->ConsumeMissed();
+
+	if (missed && GameProgress::GetDifficulty() == Difficulty::Normal)
+		ResetPickedItems();
+}
+
+void GameScene::ResetPickedItems()
+{
+	// 何も取っていなければ何もしない
+	bool hasPicked = false;
+	for (bool isPicked : mPickedItems)
+		hasPicked = hasPicked || isPicked;
+	if (!hasPicked)
+		return;
+
+	mPickedItems.fill(false);
+
+	// ステージ上のアイテムを元の場所に戻す
+	for (auto* item : GetObjectManager()->FindObjects<Item>())
+		item->ResetPick();
+
+	// 表示(ポーズ画面のHUD・背景の料理)も未取得に戻す
+	if (mpItemHUD != nullptr)
+		mpItemHUD->ResetPicked();
+	if (mpBackgroundUI != nullptr)
+		mpBackgroundUI->ResetPicked();
 }
 
 void GameScene::UpdatePauseInput()

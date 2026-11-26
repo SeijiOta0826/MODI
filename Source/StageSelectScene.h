@@ -8,6 +8,7 @@
 
 class UI;
 class FocusUI;
+class DifficultySelectUI;
 
 class StageSelectScene : public Scene
 {
@@ -18,12 +19,26 @@ public:
     void Finalize() override;
 
 private:
+    // シーン内の状態
+    enum class State
+    {
+        SelectStage,        // ステージを選んでいる
+        SelectDifficulty,   // 難易度選択のポップアップを開いている
+        Starting,           // ゲームシーンへの切り替えを予約済み(二重に予約しないため)
+    };
+
     // 背景画像(notFoundation.png)上のピクセル座標
     struct Point
     {
         float x;
         float y;
     };
+
+    // -- 更新 -- //
+    void UpdateSelectStage();
+    void UpdateSelectDifficulty();
+    void OpenDifficultySelect(int _stage);
+    void CloseDifficultySelect();
 
     // -- 生成 -- //
     void CreateBackground();
@@ -46,4 +61,8 @@ private:
 
     std::array<UI*, GameConfig::STAGE_COUNT> mpDishPanels{};    // クリック判定も兼ねる [ステージ番号 - 1]
     FocusUI* mpFocus = nullptr;                                 // キーボードでのステージ選択
+
+    State mState = State::SelectStage;
+    int mnSelectedStage = 0;                                    // 難易度選択中のステージ番号
+    DifficultySelectUI* mpDifficultyUI = nullptr;               // 難易度選択のポップアップ
 };

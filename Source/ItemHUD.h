@@ -10,6 +10,7 @@ public:
 	explicit ItemHUD(int _stage) : mStage(_stage) {}
 	void Init() override;
 	void SetPicked(int _slot);
+	void ResetPicked();		// 全部「未取得」の表示に戻す
 
 private:
 	static constexpr int   LAYER_HUD = 1;		// PauseUIの黒オーバーレイ(0)より上

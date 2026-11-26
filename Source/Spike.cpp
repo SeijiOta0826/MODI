@@ -104,7 +104,7 @@ void Spike::CheckPlayerCollision()
 
         if (Player* player = piece->GetPlayer())
         {
-            player->Respawn();
+            player->Respawn(Player::RespawnReason::Miss);  // ミキサーに触れた
             break;
         }
     }

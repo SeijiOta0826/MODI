@@ -39,6 +39,8 @@ private:
     void UpdateShapeInput();        // 変形キーで変形UIを開閉する
     void UpdateRestartInput(float deltaTime);
     void UpdateItems();             // Item の取得状態を確認する
+    void UpdateMissPenalty();       // 難易度Normal : ミスしたらアイテムをリセットする
+    void ResetPickedItems();        // 今回のプレイで取ったアイテムを、取る前の状態に戻す
 
 private:
     PlayState mState = PlayState::Playing;

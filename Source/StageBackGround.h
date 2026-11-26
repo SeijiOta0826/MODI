@@ -24,6 +24,7 @@ public:
 
 	void DrawBackground();			// GameSceneから最背面として呼ぶ
 	void SetPicked(int _slot);		// アイテム取得時に呼ぶ
+	void ResetPicked() { mnPickedBits = 0; }	// 全部「未取得」に戻す
 
 private:
 	std::string BuildBackgroundPath(int _stageNumber) const;

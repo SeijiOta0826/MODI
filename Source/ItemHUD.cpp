@@ -35,3 +35,10 @@ void ItemHUD::SetPicked(int _slot) {
 		return;
 	mpIcons[_slot]->SetPicked(true);	// 「通常描画」に切り替え
 }
+
+void ItemHUD::ResetPicked() {
+	for (ItemIconUI* icon : mpIcons) {
+		if (icon != nullptr)
+			icon->SetPicked(false);
+	}
+}

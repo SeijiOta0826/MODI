@@ -222,11 +222,22 @@ void Player::UpdatePieceTransforms()
 void Player::CheckRespawn()
 {
 	if (mpTransform->GetPosition().y > ScreenConfig::SCREEN_HEIGHT)
-		Respawn();
+		Respawn(RespawnReason::Miss);	// 奈落への落下
 }
 
-void Player::Respawn()
+bool Player::ConsumeMissed()
 {
+	const bool missed = mbMissed;
+	mbMissed = false;
+	return missed;
+}
+
+void Player::Respawn(RespawnReason _reason)
+{
+	// ミスだったことを記録しておく(何をするかは難易度を知っている GameScene が決める)
+	if (_reason == RespawnReason::Miss)
+		mbMissed = true;
+
 	// 形状を先に戻す(回転軸が選び直されて原点が動くので、位置はそのあとで上書きする)
 	SetShape(0);
 	mpTransform->SetPosition(mvRespawnPos);
