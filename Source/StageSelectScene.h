@@ -27,7 +27,7 @@ private:
         Starting,           // ゲームシーンへの切り替えを予約済み(二重に予約しないため)
     };
 
-    // 背景画像(UI/StageSelect/Background.png)上のピクセル座標
+    // レイアウト座標(完成イメージ / RecipeBook.png 942×527 上のピクセル座標)
     struct Point
     {
         float x;
@@ -41,7 +41,10 @@ private:
     void CloseDifficultySelect();
 
     // -- 生成 -- //
-    void CreateBackground();
+    void CreateBackground();                                            // まな板(画面いっぱい)
+    void CreateRecipeBook();                                            // レシピ本
+    void CreateTitle();                                                 // 「ステージ選択」
+    void CreateEscHud();                                                // 右下の「ESC : タイトルへ戻る」
     void CreateStageCard(int _stage);                                   // 料理枠1つ分
     void CreateDishName(int _stage, Point _center, bool _isCompleted);
     void CreateDish(int _stage, Point _center, bool _isCompleted);
@@ -51,13 +54,10 @@ private:
     void PlaceImage(UI* _ui, float _x, float _y, int _layer) const;     // レイヤーと位置
     void FitImage(UI* _ui, float _width, float _height) const;          // 比率を保って枠内に収める
     void StretchImage(UI* _ui, float _width, float _height) const;      // 比率を無視して引き伸ばす
-    VECTOR ToUIPosition(float _x, float _y) const;                      // 背景画像の座標 → UIのPosition
+    VECTOR ToUIPosition(float _x, float _y) const;                      // レイアウト座標 → UIのPosition
 
 private:
     UI* mpBackground = nullptr;
-
-    float mfBgScaleX = 1.0f;    // 背景画像 → 画面 の拡大率
-    float mfBgScaleY = 1.0f;
 
     std::array<UI*, GameConfig::STAGE_COUNT> mpDishPanels{};    // クリック判定も兼ねる [ステージ番号 - 1]
     FocusUI* mpFocus = nullptr;                                 // キーボードでのステージ選択
