@@ -55,6 +55,8 @@ void Spike::Update(float _deltaTime)
                     0.8             // 拡大率
                 );
             }
+
+            mpSmokeEffect->SetUseCamera(true);
         }
     }
 
