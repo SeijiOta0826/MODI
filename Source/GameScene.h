@@ -7,7 +7,6 @@
 #include "EffectDanger.h"
 #include "EffectHappy.h"
 #include "EffectSleep.h"
-#include "EffectGloss.h"
 
 class Player;
 class Goal;
@@ -71,6 +70,5 @@ private:
     EffectDanger m_dangerEffect;
     EffectHappy m_happyEffect;
     EffectSleep m_sleepEffect;
-    EffectGloss m_glossEffect;
 
 };

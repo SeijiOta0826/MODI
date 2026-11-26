@@ -23,7 +23,6 @@
     <ClCompile Include="Source\CameraShake.cpp" />
     <ClCompile Include="Source\ClearSequence.cpp" />
     <ClCompile Include="Source\EffectDanger.cpp" />
-    <ClCompile Include="Source\EffectGloss.cpp" />
     <ClCompile Include="Source\EffectHappy.cpp" />
     <ClCompile Include="Source\EffectSleep.cpp" />
     <ClCompile Include="Source\EffekseerManager.cpp" />
@@ -110,7 +109,6 @@
     <ClInclude Include="Source\CameraShake.h" />
     <ClInclude Include="Source\ClearSequence.h" />
     <ClInclude Include="Source\EffectDanger.h" />
-    <ClInclude Include="Source\EffectGloss.h" />
     <ClInclude Include="Source\EffectHappy.h" />
     <ClInclude Include="Source\EffectSleep.h" />
     <ClInclude Include="Source\EffekseerManager.h" />

@@ -19,7 +19,6 @@
 // -- GameObject -- //
 #include "Stage.h"
 #include "Player.h"
-#include "PlayerPiece.h"
 #include "Goal.h"
 #include "Item.h"
 #include "ItemTable.h"
@@ -44,7 +43,6 @@
 // -- 標準ライブラリ -- //
 #include <limits>
 #include <string>
-#include <vector>
 
 void GameScene::Initialize()
 {
@@ -52,7 +50,6 @@ void GameScene::Initialize()
 	m_dangerEffect.Clear();
 	m_happyEffect.Clear();
 	m_sleepEffect.Clear();
-	m_glossEffect.Clear();
 
 	// -- ステージの生成 -- //
 	auto* stage = new Stage();
@@ -147,7 +144,6 @@ void GameScene::EnterClear()
 	m_dangerEffect.Clear();
 	m_happyEffect.Clear();
 	m_sleepEffect.Clear();
-	m_glossEffect.Clear();
 
 	// ゴールしたプレイヤーの位置を取得
 	const VECTOR playerPosition = mpPlayer->GetModule<Transform>()->GetPosition();
@@ -187,9 +183,6 @@ void GameScene::Draw()
 	{
 		mpKitchenFrame->Draw();
 	}
-
-	// Effekseer版Glossエフェクトを描画
-	m_glossEffect.Draw();
 
 	// Effekseer版Dangerエフェクトを描画
 	m_dangerEffect.Draw();
@@ -266,7 +259,6 @@ void GameScene::UpdatePlayerEffects(float deltaTime, bool isPaused, bool isShape
 		m_dangerEffect.Clear();
 		m_happyEffect.Clear();
 		m_sleepEffect.Clear();
-		m_glossEffect.Clear();
 		return;
 	}
 
@@ -276,32 +268,10 @@ void GameScene::UpdatePlayerEffects(float deltaTime, bool isPaused, bool isShape
 		m_dangerEffect.Clear();
 		m_happyEffect.Clear();
 		m_sleepEffect.Clear();
-		m_glossEffect.Clear();
 		return;
 	}
 
 	const VECTOR playerPos = playerTransform->GetPosition();
-
-	// ポーズや変形画面中でなければ有効な全PlayerPieceに光沢エフェクトを表示する
-	if (isPaused || isShapeEditing)
-	{
-		m_glossEffect.Clear();
-	}
-	else
-	{
-		std::vector<VECTOR> piecePositions;
-		for (auto* piece : GetObjectManager()->FindObjects<PlayerPiece>())
-		{
-			if (!piece->IsActive())
-				continue;
-
-			if (auto* pieceTransform = piece->GetModule<Transform>())
-			{
-				piecePositions.push_back(pieceTransform->GetPosition());
-			}
-		}
-		m_glossEffect.Update(piecePositions);
-	}
 
 	// 一番近いSpikeとの距離の2乗を求める
 	float minSpikeDistSq = (std::numeric_limits<float>::max)();
@@ -436,7 +406,6 @@ void GameScene::Finalize()
 	m_dangerEffect.Clear();
 	m_happyEffect.Clear();
 	m_sleepEffect.Clear();
-	m_glossEffect.Clear();
 
 	if (mpKitchenFrame != nullptr)
 	{

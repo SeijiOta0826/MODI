@@ -23,14 +23,20 @@ public:
 	void SetActive(bool _active);
 	bool IsActive() const { return mbIsActive; }
 
+	// 上下左右の接続ビット(0〜15)に合わせて描画タイルを切り替える
+	void SetAutoTileMask(int _mask);
+
 	Player* GetPlayer() const { return mpPlayer; }
 
 protected:
 	const char* GetModelFilename() const override
 	{
-		return "Resource/GameObject/Player/Tofu.png";
+		return "Resource/GameObject/Player/TofuAutoTile.png";
 	}
 private:
+	static constexpr int TILE_SIZE = 100;
+	static constexpr int TILE_COLS = 4;
+
 	Player* mpPlayer = nullptr;	// ハブとなるPlayerのポインタ
 
 	bool mbIsActive = false;	// Pieceの有効状態を示す
