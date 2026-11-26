@@ -23,7 +23,7 @@ private:
 
 	void UpdateIdle(float _deltaTime);
 	void UpdatePicking(float _deltaTime);
-	void DrawAura();
+	// void DrawAura();
 
 	static constexpr float PICK_DURATION = 0.25f;
 	static constexpr float FLOAT_AMPLITUDE = 6.0f;	// 上下に揺れる幅(px)

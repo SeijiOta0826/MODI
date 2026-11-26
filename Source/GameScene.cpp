@@ -209,6 +209,101 @@ void GameScene::UpdateShapeInput()
 		mpShapeUI->OnShapeInput();
 }
 
+void GameScene::UpdateHappyEffect()
+{
+	if (mpPlayer == nullptr || mpGoal == nullptr)
+	{
+		m_happyEffect.Clear();
+		return;
+	}
+
+	auto* playerTransform = mpPlayer->GetModule<Transform>();
+	auto* goalTransform = mpGoal->GetModule<Transform>();
+	if (playerTransform == nullptr || goalTransform == nullptr)
+	{
+		m_happyEffect.Clear();
+		return;
+	}
+
+	const VECTOR playerPos = playerTransform->GetPosition();
+	const VECTOR goalPos = goalTransform->GetPosition();
+	const float dx = playerPos.x - goalPos.x;
+	const float dy = playerPos.y - goalPos.y;
+
+	constexpr float happyDistSq = EffectHappy::HAPPY_DISTANCE * EffectHappy::HAPPY_DISTANCE;
+	const bool isNearGoal = (dx * dx + dy * dy <= happyDistSq);
+
+	m_happyEffect.Update(isNearGoal, playerPos.x, playerPos.y);
+}
+
+void GameScene::UpdateDangerEffect()
+{
+
+	if (mpPlayer == nullptr)
+
+	{
+
+		m_dangerEffect.Clear();
+
+		return;
+
+	}
+
+	// Player の座標を取得（private な CalculateCenterOfMass を使わず Transform から取得）
+
+	auto* playerTransform = mpPlayer->GetModule<Transform>();
+
+	if (playerTransform == nullptr)
+
+	{
+
+		m_dangerEffect.Clear();
+
+		return;
+
+	}
+
+	const VECTOR playerPos = playerTransform->GetPosition();
+
+	// ステージ上の全 Spike との距離をチェック（sqrt を省くため2乗で比較）
+
+	bool isNearSpike = false;
+
+	constexpr float dangerDistSq = EffectDanger::DANGER_DISTANCE * EffectDanger::DANGER_DISTANCE;
+
+	for (auto* spike : GetObjectManager()->FindObjects<Spike>())
+
+	{
+
+		auto* transform = spike->GetModule<Transform>();
+
+		if (transform == nullptr)
+
+			continue;
+
+		const VECTOR spikePos = transform->GetPosition();
+
+		const float dx = playerPos.x - spikePos.x;
+
+		const float dy = playerPos.y - spikePos.y;
+
+		if (dx * dx + dy * dy <= dangerDistSq)
+
+		{
+
+			isNearSpike = true;
+
+			break;
+
+		}
+
+	}
+
+	m_dangerEffect.Update(isNearSpike, playerPos.x, playerPos.y);
+
+}
+
+
 void GameScene::UpdateItems()
 {
 	for (auto* item : GetObjectManager()->FindObjects<Item>())

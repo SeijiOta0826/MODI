@@ -54,24 +54,12 @@ void Item::Update(float _deltaTime) {
 
 void Item::Draw() {
 	if (mState == State::Idle) {
-		DrawAura();
+		//DrawAura();
 	}
 	GameObject::Draw();
 }
 
 void Item::UpdateIdle(float _deltaTime) {
-	// ふわふわ上下に浮かせて「拾えるアイテム」であることを伝える
-	if (auto transform = GetModule<Transform>()) {
-		VECTOR pos = transform->GetPosition();
-		if (!mHasBaseY) {
-			mBaseY = pos.y;
-			mHasBaseY = true;
-		}
-		mFloatTimer += _deltaTime;
-		pos.y = mBaseY + std::sinf(mFloatTimer * FLOAT_SPEED) * FLOAT_AMPLITUDE;
-		transform->SetPosition(pos);
-	}
-
 	auto collider = GetModule<Collider>();
 	if (!collider || !collider->IsColliding(Tag::PLAYER_CELL))
 		return;
