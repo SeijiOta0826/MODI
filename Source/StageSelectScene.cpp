@@ -80,8 +80,8 @@ namespace
 	constexpr float DISH_IMAGE_WIDTH = 100.0f;	// 料理画像を収める大きさ
 	constexpr float DISH_IMAGE_HEIGHT = 75.0f;
 
-	constexpr float ITEM_PANEL_SIZE = 32.0f;
-	constexpr float ITEM_IMAGE_SIZE = 26.0f;
+	constexpr float ITEM_PANEL_SIZE = 50.0f;
+	constexpr float ITEM_IMAGE_SIZE = 50.0f;
 
 	// -- ESC案内(HUD) : ここだけ画面のピクセル座標 -- //
 	constexpr float HUD_MARGIN_X = 40.0f;		// 画面右端からの余白
