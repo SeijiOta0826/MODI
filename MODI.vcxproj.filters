@@ -438,6 +438,12 @@
     <ClCompile Include="Source\EffectHappy.cpp">
       <Filter>ソース ファイル\Effect\Player</Filter>
     </ClCompile>
+    <ClCompile Include="Source\EffectSleep.cpp">
+      <Filter>ソース ファイル\Effect\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\EffectGloss.cpp">
+      <Filter>ソース ファイル\Effect\Player</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\GamePad.h">
@@ -693,6 +699,12 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Source\EffectHappy.h">
+      <Filter>ヘッダー ファイル\Effects\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\EffectSleep.h">
+      <Filter>ヘッダー ファイル\Effects\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\EffectGloss.h">
       <Filter>ヘッダー ファイル\Effects\Player</Filter>
     </ClInclude>
   </ItemGroup>

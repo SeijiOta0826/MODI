@@ -3,6 +3,12 @@
 // -- Itemデータ -- //
 #include "ItemTable.h"
 
+// -- Manager / Camera -- //
+#include "Master.h"
+#include "SceneManager.h"
+#include "Scene.h"
+#include "Camera.h"
+
 // -- Module -- //
 #include "Transform.h"
 #include "Graphic.h"
@@ -12,6 +18,10 @@
 
 // -- Config -- //
 #include "GameConfig.h"
+
+#include <DxLib.h>
+#include <algorithm>
+#include <cmath>
 
 void Item::InitComponent() {
 	AddModule<Transform>();
@@ -35,13 +45,32 @@ void Item::Update(float _deltaTime) {
 		return;
 
 	switch (mState) {
-	case State::Idle:    UpdateIdle();              break;
+	case State::Idle:    UpdateIdle(_deltaTime);    break;
 	case State::Picking: UpdatePicking(_deltaTime); break;
 	}
 	GameObject::Update(_deltaTime);
 }
 
-void Item::UpdateIdle() {
+void Item::Draw() {
+	if (mState == State::Idle) {
+		DrawAura();
+	}
+	GameObject::Draw();
+}
+
+void Item::UpdateIdle(float _deltaTime) {
+	// ふわふわ上下に浮かせて「拾えるアイテム」であることを伝える
+	if (auto transform = GetModule<Transform>()) {
+		VECTOR pos = transform->GetPosition();
+		if (!mHasBaseY) {
+			mBaseY = pos.y;
+			mHasBaseY = true;
+		}
+		mFloatTimer += _deltaTime;
+		pos.y = mBaseY + std::sinf(mFloatTimer * FLOAT_SPEED) * FLOAT_AMPLITUDE;
+		transform->SetPosition(pos);
+	}
+
 	auto collider = GetModule<Collider>();
 	if (!collider || !collider->IsColliding(Tag::PLAYER_CELL))
 		return;
@@ -67,4 +96,33 @@ void Item::UpdatePicking(float _deltaTime) {
 
 	if (rate >= 1.0f)
 		Destroy();
+}
+
+void Item::DrawAura() {
+	auto transform = GetModule<Transform>();
+	if (transform == nullptr)
+		return;
+
+	VECTOR drawPos = transform->GetPosition();
+	float zoom = 1.0f;
+
+	if (Master::mpSceneManager != nullptr) {
+		if (auto* currentScene = Master::mpSceneManager->GetCurrentScene()) {
+			if (auto* camera = currentScene->GetCamera()) {
+				drawPos = camera->WorldToScreen(drawPos);
+				zoom = camera->GetZoom();
+			}
+		}
+	}
+
+	// 呼吸するようにほんのり脈動する白い光輪
+	const float pulse = 1.0f + 0.08f * std::sinf(mFloatTimer * FLOAT_SPEED);
+
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 55);
+	DrawCircleAA(drawPos.x, drawPos.y, AURA_OUTER_RADIUS * zoom * pulse, 32, GetColor(255, 250, 220), TRUE);
+
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 95);
+	DrawCircleAA(drawPos.x, drawPos.y, AURA_INNER_RADIUS * zoom * pulse, 32, GetColor(255, 255, 245), TRUE);
+
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
