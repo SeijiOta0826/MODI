@@ -31,7 +31,7 @@ public:
 protected:
 	const char* GetModelFilename() const override
 	{
-		return "Resource/GameObject/Player/TofuAutoTile.png";
+		return "Resource/Object/Player/TofuAutoTile.png";
 	}
 private:
 	static constexpr int TILE_SIZE = 100;

@@ -95,16 +95,16 @@ void Graphic::Draw()
 
     if (mbUseSourceRect)
     {
-        // 指定範囲を切り出して描画する
-        DrawRectRotaGraph3(
-            static_cast<int>(drawPosition.x),
-            static_cast<int>(drawPosition.y),
+        // 指定範囲を切り出して描画する（回転時の1pxズレによる隙間を防ぐためF版を使用）
+        DrawRectRotaGraph3F(
+            drawPosition.x,
+            drawPosition.y,
             mnSrcX,
             mnSrcY,
             mnSrcWidth,
             mnSrcHeight,
-            mnSrcWidth / 2,
-            mnSrcHeight / 2,
+            static_cast<float>(mnSrcWidth) * 0.5f,
+            static_cast<float>(mnSrcHeight) * 0.5f,
             scale.x * zoom,
             scale.y * zoom,
             rotation.z,
