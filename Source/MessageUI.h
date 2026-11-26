@@ -39,7 +39,7 @@ private:
 	void ApplyLayout();	// 矩形・余白の設定をTransform / Textへ反映する
 
 private:
-	static constexpr const char* PANEL_FILE_PATH = "Resource/UI/Message/WriteWindowPanel.png";
+	static constexpr const char* PANEL_FILE_PATH = "Resource/UI/Common/MessageWindow.png";
 
 	static constexpr int LAYER = 5;					// ポーズ画面(〜3)などより手前に出す
 	static constexpr int PANEL_ALPHA = 190;			// パネルの不透明度(0〜255)

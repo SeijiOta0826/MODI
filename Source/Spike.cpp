@@ -42,7 +42,7 @@ void Spike::Update(float _deltaTime)
         if (auto* transform = GetModule<Transform>())
         {
             const VECTOR pos = transform->GetPosition();
-            auto* pSmokeData = Master::mpResource->LoadDivGraphics("Resource/GameObject/StageBlock/Spike.png", 16, 4, 4);
+            auto* pSmokeData = Master::mpResource->LoadDivGraphics("Resource/Object/Stage/Spike.png", 16, 4, 4);
 
             if (pSmokeData != nullptr)
             {
@@ -55,6 +55,8 @@ void Spike::Update(float _deltaTime)
                     0.8             // 拡大率
                 );
             }
+
+            mpSmokeEffect->SetUseCamera(true);
         }
     }
 
@@ -104,7 +106,7 @@ void Spike::CheckPlayerCollision()
 
         if (Player* player = piece->GetPlayer())
         {
-            player->Respawn();
+            player->Respawn(Player::RespawnReason::Miss);  // ミキサーに触れた
             break;
         }
     }

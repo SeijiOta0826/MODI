@@ -47,6 +47,7 @@ void Item::Update(float _deltaTime) {
 	switch (mState) {
 	case State::Idle:    UpdateIdle(_deltaTime);    break;
 	case State::Picking: UpdatePicking(_deltaTime); break;
+	case State::Hidden:  break;
 	}
 	GameObject::Update(_deltaTime);
 }
@@ -79,6 +80,9 @@ void Item::UpdateIdle(float _deltaTime) {
 	mTimer = 0.0f;
 	collider->SetEnabled(false);
 
+	if (auto transform = GetModule<Transform>())
+		mvBaseScale = transform->GetScale();
+
 	//SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_ITEM_GETTING);
 }
 
@@ -92,37 +96,26 @@ void Item::UpdatePicking(float _deltaTime) {
 		: 1.3f * (1.0f - (rate - 0.5f) / 0.5f);
 
 	if (auto transform = GetModule<Transform>())
-		transform->SetScale(VGet(scale, scale, 1.0f));
+		transform->SetScale(VGet(mvBaseScale.x * scale, mvBaseScale.y * scale, mvBaseScale.z));
 
+	// memo : 以前は Destroy() していたが、難易度Normalでミスしたときに戻せるよう、消さずに隠すだけにした
 	if (rate >= 1.0f)
-		Destroy();
+	{
+		mState = State::Hidden;
+		if (auto graphic = GetModule<Graphic>())
+			graphic->SetEnabled(false);
+	}
 }
 
-void Item::DrawAura() {
-	auto transform = GetModule<Transform>();
-	if (transform == nullptr)
-		return;
+void Item::ResetPick()
+{
+	mState = State::Idle;	// IsPicked() が false に戻る
+	mTimer = 0.0f;
 
-	VECTOR drawPos = transform->GetPosition();
-	float zoom = 1.0f;
-
-	if (Master::mpSceneManager != nullptr) {
-		if (auto* currentScene = Master::mpSceneManager->GetCurrentScene()) {
-			if (auto* camera = currentScene->GetCamera()) {
-				drawPos = camera->WorldToScreen(drawPos);
-				zoom = camera->GetZoom();
-			}
-		}
-	}
-
-	// 呼吸するようにほんのり脈動する白い光輪
-	const float pulse = 1.0f + 0.08f * std::sinf(mFloatTimer * FLOAT_SPEED);
-
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 55);
-	DrawCircleAA(drawPos.x, drawPos.y, AURA_OUTER_RADIUS * zoom * pulse, 32, GetColor(255, 250, 220), TRUE);
-
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 95);
-	DrawCircleAA(drawPos.x, drawPos.y, AURA_INNER_RADIUS * zoom * pulse, 32, GetColor(255, 255, 245), TRUE);
-
-	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	if (auto transform = GetModule<Transform>())
+		transform->SetScale(mvBaseScale);
+	if (auto graphic = GetModule<Graphic>())
+		graphic->SetEnabled(true);
+	if (auto collider = GetModule<Collider>())
+		collider->SetEnabled(true);
 }

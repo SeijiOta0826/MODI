@@ -339,6 +339,9 @@
     <ClCompile Include="Source\PlayerShapeUI.cpp">
       <Filter>ソース ファイル\UI\ShapeUI</Filter>
     </ClCompile>
+    <ClCompile Include="Source\DifficultySelectUI.cpp">
+      <Filter>ソース ファイル\UI</Filter>
+    </ClCompile>
     <ClCompile Include="Source\ConfigUI.cpp">
       <Filter>ソース ファイル\UI\PauseUI</Filter>
     </ClCompile>
@@ -586,6 +589,9 @@
     </ClInclude>
     <ClInclude Include="Source\PlayerPieceUI.h">
       <Filter>ヘッダー ファイル\UI\ShapeUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\DifficultySelectUI.h">
+      <Filter>ヘッダー ファイル\UI</Filter>
     </ClInclude>
     <ClInclude Include="Source\ConfigUI.h">
       <Filter>ヘッダー ファイル\UI\PauseUI</Filter>

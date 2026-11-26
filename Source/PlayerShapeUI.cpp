@@ -45,7 +45,7 @@ namespace
 void PlayerShapeUI::Init()
 {
 	// -- 自身の初期設定 -- //
-	LoadUIGraph("Resource/UI/ShapeSelect/Shape_panel.png");
+	LoadUIGraph("Resource/UI/ShapeSelect/Panel.png");
 	SetLayer(LAYER_FRAME);
 	SetEnabled(false);	// 初期状態は非表示
 
@@ -59,7 +59,7 @@ void PlayerShapeUI::Init()
 	}
 
 	mpBackGround = GetUIManager()->CreateUI<UI>();
-	mpBackGround->LoadUIGraph("Resource/UI/ShapeSelect/BackGround.png");
+	mpBackGround->LoadUIGraph("Resource/UI/ShapeSelect/Background.png");
 	mpBackGround->SetLayer(LAYER_FRAME);
 	mpBackGround->GetTransform().SetScale(VGet(1.5f, 1.5f, 1.0f));
 	mpBackGround->GetTransform().SetPosition(VGet(-60.0f, 0.0f, 0.0f));
@@ -102,7 +102,7 @@ void PlayerShapeUI::Init()
 
 	// -- オーバーレイ生成 -- //
 	mpOverlay = GetUIManager()->CreateUI<UI>();
-	mpOverlay->LoadUIGraph("Resource/UI/Overlay/Overlay_black.png");
+	mpOverlay->LoadUIGraph("Resource/UI/Common/Overlay.png");
 	mpOverlay->SetLayer(LAYER_OVERLAY);
 	mpOverlay->SetEnabled(true);
 	this->AddChild(mpOverlay);
@@ -125,7 +125,7 @@ void PlayerShapeUI::CreatePieceUI(int _column, int _row)
 	if (pieceUI == nullptr)
 		return;
 
-	pieceUI->LoadUIGraph("Resource/UI/ShapeSelect/Shape_cell.png");
+	pieceUI->LoadUIGraph("Resource/UI/ShapeSelect/Cell.png");
 	pieceUI->SetLayer(LAYER_PIECE);
 	mPieceUI[_column][_row] = pieceUI;
 
