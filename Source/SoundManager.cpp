@@ -34,16 +34,16 @@ void SoundManager::Initialize()
 	
 
 	// SE の読み込み
-	LoadSE(SOUND_SE::SE_DECIDE, "Resource/Sound/SE/Click/Click_normal.mp3");		// クリック(通常)
-	LoadSE(SOUND_SE::SE_SELECTUI, "Resource/Sound/SE/Click/Click_ui.mp3");			// クリック(UI)
-	LoadSE(SOUND_SE::SE_ITEM_GETTING, "Resource/Sound/SE/Item/getting.mp3");			// クリック(UI)
-	LoadSE(SOUND_SE::SE_RESPAWN, "Resource/Sound/SE/Player/Respawn/Respawn.mp3");			// クリック(UI)
+	LoadSE(SOUND_SE::SE_DECIDE, "Resource/Sound/SE/Click.mp3");		// クリック(通常)
+	LoadSE(SOUND_SE::SE_SELECTUI, "Resource/Sound/SE/ClickUI.mp3");			// クリック(UI)
+	LoadSE(SOUND_SE::SE_ITEM_GETTING, "Resource/Sound/SE/ItemGet.mp3");			// クリック(UI)
+	LoadSE(SOUND_SE::SE_RESPAWN, "Resource/Sound/SE/Respawn.mp3");			// クリック(UI)
 	
-	LoadSE(SOUND_SE::SE_GOAL, "Resource/Sound/SE/JINGLE/Clear.mp3");				// クリアジングル
-	LoadSE(SOUND_SE::SE_GOALVOICE, "Resource/Sound/SE/Clear/Yay.mp3");				// クリアSE
+	LoadSE(SOUND_SE::SE_GOAL, "Resource/Sound/Jingle/Clear.mp3");				// クリアジングル
+	LoadSE(SOUND_SE::SE_GOALVOICE, "Resource/Sound/SE/ClearVoice.mp3");				// クリアSE
 
-	LoadBGM(SOUND_BGM::BGM_Title, "Resource/Sound/BGM/Title&Select/Title&SelectBGM.mp3");	// BGM(Title&StageSelect)
-	LoadBGM(SOUND_BGM::BGM_Game, "Resource/Sound/BGM/Game/Cooking.mp3");					// BGM(Game)
+	LoadBGM(SOUND_BGM::BGM_Title, "Resource/Sound/BGM/Menu.mp3");	// BGM(Title&StageSelect)
+	LoadBGM(SOUND_BGM::BGM_Game, "Resource/Sound/BGM/Cooking.mp3");					// BGM(Game)
 }
 
 void SoundManager::Finalize()

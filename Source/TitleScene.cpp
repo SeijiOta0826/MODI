@@ -21,7 +21,7 @@ void TitleScene::Initialize()
 
 	// -- 背景画像 -- //
 	mpBackGround = uiManager->CreateUI<UI>();
-	mpBackGround->LoadUIGraph("Resource/UI/Scene_Title/background.png");
+	mpBackGround->LoadUIGraph("Resource/UI/Title/Background.png");
 	mpBackGround->SetEnabled(true);
 	mpBackGround->SetLayer(0);
 		// -- 拡縮
@@ -31,7 +31,7 @@ void TitleScene::Initialize()
 
 	// -- 「Start」ボタン -- //
 	mpStartButton = uiManager->CreateUI<UI>();
-	mpStartButton->LoadUIGraph("Resource/UI/Scene_Title/Spoon.png");
+	mpStartButton->LoadUIGraph("Resource/UI/Title/Spoon.png");
 	mpStartButton->SetEnabled(true);
 	mpStartButton->SetLayer(1);
 	mpStartButton->GetHoverScaler().SetActive(true);	// ボタンのホバー演出を適用
@@ -43,7 +43,7 @@ void TitleScene::Initialize()
 
 	// -- 「Quit」ボタン -- //
 	mpQuitButton = uiManager->CreateUI<UI>();
-	mpQuitButton->LoadUIGraph("Resource/UI/Scene_Title/Fork.png");
+	mpQuitButton->LoadUIGraph("Resource/UI/Title/Fork.png");
 	mpQuitButton->SetEnabled(true);
 	mpQuitButton->SetLayer(1);
 	mpQuitButton->GetHoverScaler().SetActive(true);	// ボタンのホバー演出を適用

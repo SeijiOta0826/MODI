@@ -35,7 +35,7 @@ void TutorialScene::Initialize()
 
     // -- 1. 先にステージCSVを読み込む（CSV内の「5」の位置にPlayerが1人だけ生成される） -- //
     auto* stage = new Stage();
-    stage->Load("Resource/CSV/Stage/Stage0.csv");
+    stage->Load("Resource/StageMap/Stage0.csv");
 
     // -- 2. CSVから生成されたPlayerを探してから変形UIを作る -- //
     mpPlayer = GetObjectManager()->FindObject<Player>();
@@ -59,7 +59,7 @@ void TutorialScene::Initialize()
 
     // -- 「Skip」ボタン -- //
     mpSkipButton = GetUIManager()->CreateUI<UI>();
-    mpSkipButton->LoadUIGraph("Resource/UI/Scene_Tutorial/Skip.png");
+    mpSkipButton->LoadUIGraph("Resource/UI/Tutorial/Skip.png");
     mpSkipButton->SetEnabled(true);
     mpSkipButton->SetLayer(1);
     mpSkipButton->GetHoverScaler().SetActive(true);

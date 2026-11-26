@@ -48,7 +48,7 @@ void ClearUI::CreateItemIcons()
 void ClearUI::CreateStageSelectButton()
 {
     mpStageSelectUI = GetUIManager()->CreateUI<UI>();
-    mpStageSelectUI->LoadUIGraph("Resource/UI/Clear/button.png");
+    mpStageSelectUI->LoadUIGraph("Resource/UI/Clear/Button.png");
     mpStageSelectUI->SetLayer(2);
     mpStageSelectUI->GetTransform().SetScale(VGet(1.0f, 1.0f, 0.0f));
     mpStageSelectUI->GetTransform().SetPosition(VGet(0.0f, BUTTON_Y, 0.0f));
@@ -74,7 +74,7 @@ void ClearUI::CreateStageSelectButton()
 void ClearUI::CreatePanel() 
 {
     mpPanel = GetUIManager()->CreateUI<UI>();
-    mpPanel->LoadUIGraph("Resource/UI/Clear/test.png");
+    mpPanel->LoadUIGraph("Resource/UI/Clear/Panel.png");
     mpPanel->SetLayer(1);
     mpPanel->GetTransform().SetScale(VGet(0.85f, 0.7f, 0.0f));
 

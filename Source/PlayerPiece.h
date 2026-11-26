@@ -28,7 +28,7 @@ public:
 protected:
 	const char* GetModelFilename() const override
 	{
-		return "Resource/GameObject/Player/Tofu.png";
+		return "Resource/Object/Player/Tofu.png";
 	}
 private:
 	Player* mpPlayer = nullptr;	// ハブとなるPlayerのポインタ

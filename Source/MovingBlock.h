@@ -18,7 +18,7 @@ protected:
     // �摜���\�[�X�i�p�X��ς���ƌ����ڂ�ύX�\�j
     const char* GetModelFilename() const override
     {
-        return "Resource/GameObject/StageBlock/Stage.png";
+        return "Resource/Object/Stage/Block.png";
     }
 
 private:
