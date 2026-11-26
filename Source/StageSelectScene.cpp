@@ -22,9 +22,9 @@
 namespace
 {
 	// -- 画像パス -- //
-	constexpr const char* BACKGROUND_PATH = "Resource/UI/Scene_StageSelect/notFoundation.png";
-	constexpr const char* DISH_PANEL_PATH = "Resource/UI/Scene_StageSelect/DeshPanel.png";
-	constexpr const char* ITEM_PANEL_PATH = "Resource/UI/Scene_StageSelect/ItemPanel.png";
+	constexpr const char* BACKGROUND_PATH = "Resource/UI/StageSelect/Background.png";
+	constexpr const char* DISH_PANEL_PATH = "Resource/UI/StageSelect/DishPanel.png";
+	constexpr const char* ITEM_PANEL_PATH = "Resource/UI/StageSelect/ItemPanel.png";
 
 	// -- シークレット表示 -- //
 	constexpr const char* SECRET_NAME = "???";

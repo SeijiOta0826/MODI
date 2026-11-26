@@ -20,7 +20,7 @@ public:
 protected:
 	const char* GetModelFilename() const override
 	{
-		return "Resource/GameObject/StageBlock/Konjac.png";
+		return "Resource/Object/Stage/Konjac.png";
 	}
 
 private:

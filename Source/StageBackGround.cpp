@@ -157,5 +157,5 @@ void StageBackGround::DrawImage(int _handle, float _x, float _y, float _scale, f
 
 std::string StageBackGround::BuildBackgroundPath(int _stageNumber) const
 {
-	return std::format("Resource/UI/BackGround/Stage{}_bg.png", _stageNumber);
+	return std::format("Resource/Background/Stage{}.png", _stageNumber);
 }

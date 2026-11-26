@@ -41,7 +41,7 @@ void TutorialScene::Initialize()
     
     // -- ステージ読み込み -- //
     auto* stage = new Stage();
-    stage->Load("Resource/CSV/Stage/Stage0.csv");
+    stage->Load("Resource/StageMap/Stage0.csv");
 
     mpGoal = GetObjectManager()->FindObject<Goal>();
 
@@ -58,7 +58,7 @@ void TutorialScene::Initialize()
 
     // -- 「Skip」ボタン -- //
     mpSkipButton = GetUIManager()->CreateUI<UI>();
-    mpSkipButton->LoadUIGraph("Resource/UI/Scene_Tutorial/Skip.png");
+    mpSkipButton->LoadUIGraph("Resource/UI/Tutorial/Skip.png");
     mpSkipButton->SetEnabled(true);
     mpSkipButton->SetLayer(1);
     mpSkipButton->GetHoverScaler().SetActive(true);

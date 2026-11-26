@@ -27,7 +27,7 @@ private:
         Starting,           // ゲームシーンへの切り替えを予約済み(二重に予約しないため)
     };
 
-    // 背景画像(notFoundation.png)上のピクセル座標
+    // 背景画像(UI/StageSelect/Background.png)上のピクセル座標
     struct Point
     {
         float x;

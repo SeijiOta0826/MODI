@@ -33,7 +33,7 @@ Game::Game()
 
     {
         // -- フォントのロード -- //
-        Master::mpFontManager->LoadFontFile("Resource/Font/PixelMplus10-Bold.ttf");
+        Master::mpFontManager->LoadFontFile("Resource/Font/PixelMplus10-Regular.ttf");
 
         // -- デフォルトフォント -- //
         FontDesc defaultDesc;                     // 全部デフォルト値 = DxLib標準フォント

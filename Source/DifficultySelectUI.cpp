@@ -5,8 +5,8 @@
 
 namespace
 {
-    constexpr const char* OVERLAY_PATH = "Resource/UI/Overlay/Overlay_black.png";
-    constexpr const char* BUTTON_PATH = "Resource/UI/Pause/Pause_button.png";
+    constexpr const char* OVERLAY_PATH = "Resource/UI/Common/Overlay.png";
+    constexpr const char* BUTTON_PATH = "Resource/UI/Common/Button.png";
 
     // -- レイヤー(StageSelectScene の UI(0～4) より上) -- //
     constexpr int LAYER_OVERLAY = 20;

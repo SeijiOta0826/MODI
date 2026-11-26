@@ -20,13 +20,13 @@ void Cursor::Initialize()
     // -- 箸が開いている画像 -- //
     mOpenHandle =
         Master::mpResource->LoadGraphics(
-            "Resource/UI/Cursor/Chopsticks.png"
+            "Resource/UI/Cursor/ChopsticksOpen.png"
         );
 
     // -- 箸が閉じている画像 -- //
     mCloseHandle =
         Master::mpResource->LoadGraphics(
-            "Resource/UI/Cursor/Chopsticks(1).png"
+            "Resource/UI/Cursor/ChopsticksClose.png"
         );
 
     // -- 画像の読み込みに成功したらWindowsのマウスカーソルを非表示 -- //

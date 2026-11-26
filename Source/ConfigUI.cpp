@@ -20,11 +20,11 @@ namespace
     constexpr float UP_POS_X = 250.0f;
     constexpr float VALUE_POS_X = 430.0f;
 
-    // -- 「－」「＋」ボタン(Pause_button.png を小さくして流用) -- //
+    // -- 「－」「＋」ボタン(UI/Common/Button.png を小さくして流用) -- //
     const VECTOR STEP_BUTTON_SCALE = VGet(0.35f, 0.9f, 0.0f);
 
     // -- ゲージ(豆腐) -- //
-    const char* const TOFU_GRAPH_PATH = "Resource/UI/Pause/Config/Tofu.png";
+    const char* const TOFU_GRAPH_PATH = "Resource/UI/Pause/VolumeGauge.png";
     constexpr float GAUGE_MARGIN_X = 85.0f;     // ボタンの中心からゲージの端までの距離
     constexpr float TOFU_DRAW_SIZE = 30.0f;     // 豆腐1個を何pxで描くか(画像の大きさから拡大率を計算する)
     constexpr int   TOFU_BRIGHT_ON = 255;       // 段階に達している豆腐 = 元の色
@@ -46,7 +46,7 @@ void ConfigUI::Init()
 
     // -- 「戻る」ボタン(OperationGuideUIと同じ見た目) -- //
     mpBackButton = GetUIManager()->CreateUI<UI>();
-    mpBackButton->LoadUIGraph("Resource/UI/Pause/Pause_button.png");
+    mpBackButton->LoadUIGraph("Resource/UI/Common/Button.png");
     mpBackButton->GetText().SetFontId(FontId::SubTitle);
     mpBackButton->GetText().SetText("戻る");
     mpBackButton->SetLayer(LAYER_CONFIG);
@@ -193,7 +193,7 @@ UI* ConfigUI::CreateTextUI(const std::string& _text, FontId _font, const VECTOR&
 UI* ConfigUI::CreateStepButton(const char* _text, const VECTOR& _position)
 {
     UI* button = GetUIManager()->CreateUI<UI>();
-    button->LoadUIGraph("Resource/UI/Pause/Pause_button.png");
+    button->LoadUIGraph("Resource/UI/Common/Button.png");
     button->GetTransform().SetPosition(_position);
     button->GetTransform().SetScale(STEP_BUTTON_SCALE);
     button->GetText().SetFontId(FontId::SubTitle);

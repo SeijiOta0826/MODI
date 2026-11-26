@@ -24,7 +24,7 @@ struct BgLayerDef {
 // 料理1品分の定義
 struct BgDishDef {
 	int stage;
-	const char* folder;					// Resource/UI/BackGround/ 以下のフォルダ名
+	const char* folder;					// Resource/Background/ 以下のフォルダ名
 	const char* foundation;				// 土台画像（画面いっぱいに描く）
 	std::span<const BgLayerDef> layers;	// 描画順（上に書いたものほど奥）
 };
