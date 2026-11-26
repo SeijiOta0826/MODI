@@ -20,7 +20,7 @@ void PauseUI::Init()
 
     // オーバーレイ（変更なし）
     mpPauseOverlay = uiManager->CreateUI<UI>();
-    mpPauseOverlay->LoadUIGraph("Resource/UI/Overlay/Overlay_black.png");
+    mpPauseOverlay->LoadUIGraph("Resource/UI/Common/Overlay.png");
     mpPauseOverlay->SetEnabled(true);
     AddChild(mpPauseOverlay);
     mpPauseOverlay->SetParent(this);
@@ -33,7 +33,7 @@ void PauseUI::Init()
 
     // 冷蔵庫（MenuRootの子なので操作説明中は消える)
     mpFridgeUI = uiManager->CreateUI<UI>();
-    mpFridgeUI->LoadUIGraph("Resource/UI/Pause/Metallic Refrigerator.png");
+    mpFridgeUI->LoadUIGraph("Resource/UI/Pause/Refrigerator.png");
     mpFridgeUI->GetTransform().SetPosition(VGet(0.0f, 30.0f, 0.0f));
     mpFridgeUI->GetTransform().SetScale(VGet(2.4f, 2.4f, 0.0f));
     mpFridgeUI->SetLayer(2);        // 付箋(3)より下
@@ -47,24 +47,24 @@ void PauseUI::Init()
 
     // ★変更：4つのボタンを付箋に
     mpResumeUI = CreateStickyNote({
-        "Resource/UI/Pause/Gray sticky notes.png",  "再開",
+        "Resource/UI/Pause/StickyNote_Gray.png",  "再開",
         VGet(-324.0f, -243.0f, 0.0f), 0.75f,  0.21f });
 
     mpStageSelectUI = CreateStickyNote({
-        "Resource/UI/Pause/Orange Sticky Notes.png", "ステージ選択シーンへ",
+        "Resource/UI/Pause/StickyNote_Orange.png", "ステージ選択シーンへ",
         VGet(234.0f, -19.0f, 0.0f),   0.70f, -0.08f });
 
     // ★追加：左の真ん中の付箋 = 設定
     mpConfigButton = CreateStickyNote({
-        "Resource/UI/Pause/Green Sticky Note.png",  "設定",
+        "Resource/UI/Pause/StickyNote_Green.png",  "設定",
         VGet(-380.0f, 15.0f, 0.0f),   0.59f,  0.03f });
 
     mpTitleUI = CreateStickyNote({
-        "Resource/UI/Pause/Green Sticky Note.png",  "タイトルへ",
+        "Resource/UI/Pause/StickyNote_Green.png",  "タイトルへ",
         VGet(-387.0f, 262.0f, 0.0f),  0.59f, -0.02f });
 
     mpOperationButton = CreateStickyNote({
-        "Resource/UI/Pause/Pink Sticky Notes.png",  "操作説明",
+        "Resource/UI/Pause/StickyNote_Pink.png",  "操作説明",
         VGet(307.0f, 368.0f, 0.0f),   0.60f,  0.07f });
 
     // -- キーボード選択(FocusUI) -- //

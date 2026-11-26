@@ -6,28 +6,28 @@ void OperationGuideUI::Init()
 {
     // -- 「A」ボタンの生成 -- //
     mpGuideA = CreateGuideUI(
-        "Resource/UI/Pause/OperationGuide/A-Key.png",
+        "Resource/UI/Common/Key_A.png",
         "左回転",
         VGet(-125.0f, -100.0f, 0.0f)
     );
 
     // -- 「D」ボタンの生成 -- //
     mpGuideD = CreateGuideUI(
-        "Resource/UI/Pause/OperationGuide/D-Key.png",
+        "Resource/UI/Common/Key_D.png",
         "右回転",
         VGet(-125.0f, 0.0f, 0.0f)
     );
 
     // -- 「E」ボタンの生成 -- //
     mpGuideE = CreateGuideUI(
-        "Resource/UI/Pause/OperationGuide/E-Key.png",
+        "Resource/UI/Common/Key_E.png",
         "変形！",
         VGet(-125.0f, 100.0f, 0.0f)
     );
 
     // -- 「P」ボタンの生成 -- //
     mpGuideP = CreateGuideUI(
-        "Resource/UI/Pause/OperationGuide/P-Key.png",
+        "Resource/UI/Common/Key_P.png",
         "一時停止",
         VGet(-125.0f, 200.0f, 0.0f)
     );
@@ -40,7 +40,7 @@ void OperationGuideUI::Init()
     // -- 「戻る」ボタンの生成 -- //
         // memo : これはフォントや画像サイズの関係で、共通化できるとこが少ないのでベタ書き
     mpBackButton = GetUIManager()->CreateUI<UI>();
-    mpBackButton->LoadUIGraph("Resource/UI/Pause/Pause_button.png");
+    mpBackButton->LoadUIGraph("Resource/UI/Common/Button.png");
     mpBackButton->GetText().SetFontId(FontId::SubTitle);
     mpBackButton->GetText().SetText("戻る");
     mpBackButton->SetLayer(4);

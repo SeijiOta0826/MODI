@@ -65,7 +65,7 @@ public:
 
     // .efk / .efkefc を拡大率付きで読み込む（同じパスはキャッシュを再利用）
     // 失敗時は -1 (INVALID_HANDLE) を返し、画面左上と出力ウィンドウに原因を表示する
-    // 呼び出し例 : int res = EffekseerManager::GetInstance().Load("Resource/Effect/Effekseer/TofuClick_2D.efk", 40.0f);
+    // 呼び出し例 : int res = EffekseerManager::GetInstance().Load("Resource/Effect/Effekseer/Click/Click.efkefc", 40.0f);
     int Load(const std::string& filePath, float loadScale = DEFAULT_SCALE);
 
     // エフェクトを 2D 座標 (x, y) で再生し、再生中ハンドルを返す

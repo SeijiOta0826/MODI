@@ -90,7 +90,16 @@ public:
 	void InitComponent() override;
 	void Update(float _deltaTime) override;
 
-	void Respawn();
+	// リスポーンの理由(難易度Normalで、アイテムをリセットするかの判定に使う)
+	enum class RespawnReason
+	{
+		Restart,	// リスタートキー長押しでのやり直し
+		Miss,		// ミキサー / 奈落への落下
+	};
+	void Respawn(RespawnReason _reason = RespawnReason::Restart);
+
+	// 前回呼んでから「ミス」でリスポーンしたか(呼ぶとフラグは消える)
+	bool ConsumeMissed();
 	void UpdatePieceTransforms();	// 全Pieceのワールド座標を Player の姿勢に合わせる(外部から動かしたときも呼ぶ)
 
 	// ================= 回転 (PlayerRotation.cpp) ================= //
@@ -197,6 +206,7 @@ private:
 	std::vector<BodyContact> mGroundContacts;
 
 	VECTOR mvRespawnPos = VGet(0.0f, 0.0f, 0.0f);	// リスポーン座標
+	bool mbMissed = false;							// ミスでリスポーンしたか(GameSceneが ConsumeMissed() で受け取る)
 
 	// -- 接地・倒れ込み -- //
 	bool mbIsGrounded = false;		// 安定して接地しているか

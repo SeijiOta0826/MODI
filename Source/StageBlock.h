@@ -15,6 +15,6 @@ public:
 protected:
 	virtual const char* GetModelFilename() const override
 	{
-		return "Resource/GameObject/StageBlock/Stage.png";
+		return "Resource/Object/Stage/Block.png";
 	}
 };

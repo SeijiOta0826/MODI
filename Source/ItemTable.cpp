@@ -2,28 +2,28 @@
 #include "ItemTable.h"
 
 namespace {
-	constexpr const char* ITEM_DIR = "Resource/Collectible/Stage";
+	constexpr const char* ITEM_DIR = "Resource/Item/Stage";
 
 	constexpr ItemDef ITEM_DEFS[] = {
-		{1,0,"Negi.png"},    {1,1,"Syouga.png"},     {1,2,"Syouyu.png"},
-		{2,0,"Konbu.png"},   {2,1,"Negi.png"},       {2,2,"Ponzu.png"},
-		{3,0,"Oil.png"},     {3,1,"Negi.png"},       {3,2,"SaySauce.png"},
-		{4,0,"Miso.png"},    {4,1,"Negi.png"},       {4,2,"Wakame.png"},
-		{5,0,"Garlic.png"},  {5,1,"Hikiniku.png"},   {5,2,"Toubanjan.png"},
-		{6,0,"Gyuniku.png"}, {6,1,"Negi.png"},       {6,2,"Tare.png"},
-		{7,0,"Mentuyu.png"}, {7,1,"Negi.png"},       {7,2,"Oil.png"},
-		{8,0,"Kukonomi.png"},{8,1,"Kyouninsou.png"}, {8,2,"Milk.png"},
+		{1,0,"GreenOnion.png"},    {1,1,"Ginger.png"},     {1,2,"SoySauce.png"},
+		{2,0,"Kelp.png"},   {2,1,"GreenOnion.png"},       {2,2,"Ponzu.png"},
+		{3,0,"Oil.png"},     {3,1,"GreenOnion.png"},       {3,2,"SoySauce.png"},
+		{4,0,"Miso.png"},    {4,1,"GreenOnion.png"},       {4,2,"Wakame.png"},
+		{5,0,"Garlic.png"},  {5,1,"GroundMeat.png"},   {5,2,"Doubanjiang.png"},
+		{6,0,"Beef.png"}, {6,1,"GreenOnion.png"},       {6,2,"Sauce.png"},
+		{7,0,"NoodleDippingSauce.png"}, {7,1,"GreenOnion.png"},       {7,2,"Oil.png"},
+		{8,0,"GojiBerries.png"},{8,1,"AlmondPaste.png"}, {8,2,"Milk.png"},
 	};
 
 	constexpr DishDef DISH_DEFS[] = {
-		{ 1, "hiyayakko.png", "冷奴" },
-		{ 2, "Yudouhu.png", "湯豆腐" },
-		{ 3, "Atsuage.png", "厚揚げ" },
-		{ 4, "Misosiru.png", "味噌汁" },
-		{ 5, "Ma-bo.png", "麻婆豆腐" },
-		{ 6, "Nikudouhu.png", "肉豆腐" },
-		{ 7, "Agedasidouhu.png", "揚げ出し豆腐" },
-		{ 8, "Anninndouhu.png", "杏仁豆腐" },
+		{ 1, "ChilledTofu.png", "冷奴" },
+		{ 2, "HotTofu.png", "湯豆腐" },
+		{ 3, "ThickFriedTofu.png", "厚揚げ" },
+		{ 4, "MisoSoup.png", "味噌汁" },
+		{ 5, "MapoTofu.png", "麻婆豆腐" },
+		{ 6, "MeatAndTofu.png", "肉豆腐" },
+		{ 7, "DeepFriedTofu.png", "揚げ出し豆腐" },
+		{ 8, "AlmondTofu.png", "杏仁豆腐" },
 	};
 }
 

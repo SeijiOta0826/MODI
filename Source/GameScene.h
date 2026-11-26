@@ -47,6 +47,9 @@ private:
     void UpdateItems();             // Item の取得状態を確認する
     void UpdateDangerEffect(); //Playerの危険を知らせるUIの表示
     void UpdateHappyEffect();  //PlayerがGoalに近づいたときのUI表示
+    void UpdateMissPenalty();       // 難易度Normal : ミスしたらアイテムをリセットする
+    void ResetPickedItems();        // 今回のプレイで取ったアイテムを、取る前の状態に戻す
+
 private:
     PlayState mState = PlayState::Playing;
 

@@ -13,24 +13,24 @@
 
 namespace
 {
-	const std::string LOAD_UI_DIR = "Resource/UI/Scene_Load/";
+	const std::string LOAD_UI_DIR = "Resource/UI/Loading/";
 
 	// -- お料理メモの一覧（データテーブル）。ロードのたびにここからランダムで1つ選ぶ -- //
 	struct LoadTip
 	{
 		const char* title;		// 見出し
 		const char* content;	// 本文
-		const char* image;		// 添付画像（Resource/UI/Scene_Load/ 内。無ければ nullptr）
+		const char* image;		// 添付画像（Resource/UI/Loading/ 内。無ければ nullptr）
 	};
 
 	const LoadTip TIP_TABLE[] =
 	{
-		{ "【 お料理メモ：変形 】",			"「Eキー」を押すと変形できるよ！ 状況に合わせて豆腐の姿を変えよう。",		"変形！.png" },
+		{ "【 お料理メモ：変形 】",			"「Eキー」を押すと変形できるよ！ 状況に合わせて豆腐の姿を変えよう。",		"Tip_Transform.png" },
 		{ "【 お料理メモ：回転移動 】",		"「Aキー / Dキー」で左右にコロコロ転がって移動しよう！",					nullptr },
-		{ "【 ギミック：トゲトゲ 】",			"赤いトゲにぶつかると豆腐が崩れちゃう！ 上手に飛び越えよう。",				"スパイク.png" },
-		{ "【 攻略のコツ：形の使い分け 】",	"高い段差は「たて長」、低い天井のすき間は「よこ長」が通りやすいよ。",		"形状有利_1.png" },
-		{ "【 やりこみ：調味料あつめ 】",		"ステージの調味料を3つ集めると、レシピ帳に料理が完成するよ！",				"やりこみ.png" },
-		{ "【 攻略のヒント 】",				"「Eキー」で変形！ 困ったときはリスタートボタンを長押ししよう。",			"リスタート.png" },
+		{ "【 ギミック：トゲトゲ 】",			"赤いトゲにぶつかると豆腐が崩れちゃう！ 上手に飛び越えよう。",				"Tip_Spike.png" },
+		{ "【 攻略のコツ：形の使い分け 】",	"高い段差は「たて長」、低い天井のすき間は「よこ長」が通りやすいよ。",		"Tip_ShapeAdvantage.png" },
+		{ "【 やりこみ：調味料あつめ 】",		"ステージの調味料を3つ集めると、レシピ帳に料理が完成するよ！",				"Tip_Collect.png" },
+		{ "【 攻略のヒント 】",				"「Eキー」で変形！ 困ったときはリスタートボタンを長押ししよう。",			"Tip_Restart.png" },
 	};
 
 	constexpr int TIP_COUNT = static_cast<int>(std::size(TIP_TABLE));
@@ -136,7 +136,7 @@ void LoadUI::CreateLoadPanel(int _stageNumber)
 
 	// 白パネル
 	auto* panel = CreateChild<NineSliceUI>(LAYER_BASE, SCREEN_CX, panelCY, PANEL_W, PANEL_H);
-	panel->SetGraph(LOAD_UI_DIR + "Panel_white.png");
+	panel->SetGraph(LOAD_UI_DIR + "Panel.png");
 	panel->SetBorder(16, 16, 16, 16);
 
 	// 「ステージ X」
@@ -191,7 +191,7 @@ void LoadUI::CreateTipImage(const char* _imageFile)
 	shadow->SetAlpha(60);
 
 	auto* board = CreateChild<NineSliceUI>(LAYER_BASE, SCREEN_CX, areaCY, boardW, boardH);
-	board->SetGraph(LOAD_UI_DIR + "GraphPanel.png");
+	board->SetGraph(LOAD_UI_DIR + "TipBoard.png");
 	board->SetBorder(14, 14, 48, 14);	// 右端は持ち手の穴ごと残す
 }
 
