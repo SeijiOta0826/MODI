@@ -99,6 +99,8 @@ Game::~Game()
 bool Game::InitializeDxLib()
 {
     ChangeWindowMode(TRUE);
+    SetMainWindowText("MOD!");
+
     SetGraphMode(
         static_cast<int>(ScreenConfig::SCREEN_WIDTH),
         static_cast<int>(ScreenConfig::SCREEN_HEIGHT),
