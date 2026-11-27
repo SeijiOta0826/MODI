@@ -36,7 +36,7 @@
 
 // -- Effect -- //
 #include "EffectManager.h"
-#include "KitchenFrame.h"
+#include "GameFrameUI.h"
 
 // -- 外部ライブラリ -- //
 #include <DxLib.h>
@@ -84,8 +84,9 @@ void GameScene::Initialize()
 
 	// -- 「RespawnUI」の生成 -- //
 	mpRespawnUI = GetUIManager()->CreateUI<RespawnUI>();
-	// -- 「KitchenFrame」の生成 --//
-	mpKitchenFrame = new KitchenFrame();
+
+	// -- 「GameFrameUI」(画面外周のフレーム)の生成 -- //
+	mpGameFrameUI = GetUIManager()->CreateUI<GameFrameUI>();
 
 	SoundManager::GetInstance()->PlayBGM(SoundManager::SOUND_BGM::BGM_Game, true);
 }
@@ -181,12 +182,7 @@ void GameScene::Draw()
 		mpBackgroundUI->DrawBackground();
 	}
 
-	Scene::Draw();
-
-	if (mpKitchenFrame != nullptr)
-	{
-		mpKitchenFrame->Draw();
-	}
+	Scene::Draw();	// フレーム(GameFrameUI)もUIとしてここで描かれる
 
 	// Effekseer版Dangerエフェクトを描画
 	m_dangerEffect.Draw();
@@ -540,10 +536,8 @@ void GameScene::Finalize()
 	m_happyEffect.Clear();
 	m_sleepEffect.Clear();
 
-	if (mpKitchenFrame != nullptr)
-	{
-		delete mpKitchenFrame;
-		mpKitchenFrame = nullptr;
-	}
+	// GameFrameUIの解放はUIManagerが担当するので、参照だけ手放す
+	mpGameFrameUI = nullptr;
+
 	Scene::Finalize();
 }
