@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Scene.h"
 #include "GameConfig.h"
+#include "KitchenToolTable.h"
 
 #include <array>
 #include <string>
@@ -45,6 +46,7 @@ private:
     void CreateRecipeBook();                                            // レシピ本
     void CreateTitle();                                                 // 「ステージ選択」
     void CreateEscHud();                                                // 右下の「ESC : タイトルへ戻る」
+    void CreateKitchenTools();                                          // 本の周りの調理器具(ドラッグ・衝突できる)
     void CreateStageCard(int _stage);                                   // 料理枠1つ分
     void CreateDishName(int _stage, Point _center, bool _isCompleted);
     void CreateDish(int _stage, Point _center, bool _isCompleted);
@@ -66,4 +68,6 @@ private:
     State mState = State::SelectStage;
     int mnSelectedStage = 0;                                    // 難易度選択中のステージ番号
     DifficultySelectUI* mpDifficultyUI = nullptr;               // 難易度選択のポップアップ
+
+    KitchenToolTable mKitchenTools;                             // ドラッグ・衝突できる調理器具(TitleSceneと共通の仕組み)
 };

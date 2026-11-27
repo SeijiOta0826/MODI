@@ -15,7 +15,7 @@ class ClearUI;
 class ItemHUD;
 class PlayerShapeUI;
 class RespawnUI;
-class KitchenFrame;
+class GameFrameUI;
 
 class StageBackGround;
 
@@ -66,7 +66,7 @@ private:
 
     PlayerShapeUI* mpShapeUI = nullptr;
     StageBackGround* mpBackgroundUI = nullptr;
-    KitchenFrame* mpKitchenFrame = nullptr;
+    GameFrameUI* mpGameFrameUI = nullptr;      // 画面外周のフレーム
     ClearSequence mClearSequence;
 
     GoalEffect m_goalEffect;
