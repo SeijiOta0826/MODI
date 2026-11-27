@@ -6,13 +6,13 @@ namespace {
 
 	constexpr ItemDef ITEM_DEFS[] = {
 		{1,0,"GreenOnion.png"},    {1,1,"Ginger.png"},     {1,2,"SoySauce.png"},
-		{2,0,"Kelp.png"},   {2,1,"GreenOnion.png"},       {2,2,"Ponzu.png"},
-		{3,0,"Oil.png"},     {3,1,"GreenOnion.png"},       {3,2,"SoySauce.png"},
-		{4,0,"Miso.png"},    {4,1,"GreenOnion.png"},       {4,2,"Wakame.png"},
-		{5,0,"Garlic.png"},  {5,1,"GroundMeat.png"},   {5,2,"Doubanjiang.png"},
-		{6,0,"Beef.png"}, {6,1,"GreenOnion.png"},       {6,2,"Sauce.png"},
-		{7,0,"NoodleDippingSauce.png"}, {7,1,"GreenOnion.png"},       {7,2,"Oil.png"},
-		{8,0,"GojiBerries.png"},{8,1,"AlmondPaste.png"}, {8,2,"Milk.png"},
+		{2,0,"Konbu.png"},   {2,1,"Green Onion.png"},       {2,2,"Ponzu.png"},
+		{3,0,"Oil.png"},     {3,1,"Green Onion.png"},       {3,2,"Soy Sauce.png"},
+		{4,0,"Miso.png"},    {4,1,"Green Onion.png"},       {4,2,"Wakame.png"},
+		{5,0,"Garlic.png"},  {5,1,"Beef.png"},   {5,2,"Doubanjiang.png"},
+		{6,0,"Beef.png"}, {6,1,"Green Onion.png"},       {6,2,"Sauce.png"},
+		{7,0,"Noodle Dipping Sauce.png"}, {7,1,"Green Onion.png"},       {7,2,"Oil.png"},
+		{8,0,"Goji Berries.png"},{8,1,"Almond Paste.png"}, {8,2,"Milk.png"},
 	};
 
 	constexpr DishDef DISH_DEFS[] = {
