@@ -24,6 +24,7 @@
     <ClCompile Include="Source\ClearSequence.cpp" />
     <ClCompile Include="Source\EffectDanger.cpp" />
     <ClCompile Include="Source\EffectHappy.cpp" />
+    <ClCompile Include="Source\EffectSleep.cpp" />
     <ClCompile Include="Source\EffekseerManager.cpp" />
     <ClCompile Include="Source\KitchenFrame.cpp" />
     <ClCompile Include="Source\LoadScene.cpp" />
@@ -65,6 +66,7 @@
     <ClCompile Include="Source\Mouse.cpp" />
     <ClCompile Include="Source\ObjectManager.cpp" />
     <ClCompile Include="Source\ConfigUI.cpp" />
+    <ClCompile Include="Source\DifficultySelectUI.cpp" />
     <ClCompile Include="Source\OperationGuideUI.cpp" />
     <ClCompile Include="Source\PauseUI.cpp" />
     <ClCompile Include="Source\Player.cpp" />
@@ -109,6 +111,7 @@
     <ClInclude Include="Source\ClearSequence.h" />
     <ClInclude Include="Source\EffectDanger.h" />
     <ClInclude Include="Source\EffectHappy.h" />
+    <ClInclude Include="Source\EffectSleep.h" />
     <ClInclude Include="Source\EffekseerManager.h" />
     <ClInclude Include="Source\KitchenFrame.h" />
     <ClInclude Include="Source\LoadScene.h" />
@@ -143,6 +146,7 @@
     <ClInclude Include="Source\ItemRecord.h" />
     <ClInclude Include="Source\ItemTable.h" />
     <ClInclude Include="Source\ConfigUI.h" />
+    <ClInclude Include="Source\DifficultySelectUI.h" />
     <ClInclude Include="Source\OperationGuideUI.h" />
     <ClInclude Include="Source\StageSelectScene.h" />
     <ClInclude Include="Source\UIFloatingMotion.h" />

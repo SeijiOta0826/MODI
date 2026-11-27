@@ -44,11 +44,14 @@ public:
         m_nGreen = std::clamp(g, MIN_COLOR_VALUE, MAX_COLOR_VALUE);
         m_nBlue = std::clamp(b, MIN_COLOR_VALUE, MAX_COLOR_VALUE);
     }
+    // カメラのズーム・位置を描画に反映するか
+    void SetUseCamera(bool _useCamera) { mbUseCamera = _useCamera; }
 
 private:
     int  GetCurrentFrameIndex() const; // 今何コマ目かを返す
     bool HasCustomColor() const;       // 色変更があるか判定
     bool HasCustomPivot() const;       // 中心ズレ指定があるか判定
+    bool mbUseCamera = false;
 
 private:
     const DivGraphData* m_pDivData = nullptr; // 分割画像データ

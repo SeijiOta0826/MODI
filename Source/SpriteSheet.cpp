@@ -1,5 +1,9 @@
 #include "SpriteSheet.h"
 #include "ResourceManager.h"
+#include "Master.h"
+#include "SceneManager.h"
+#include "Scene.h"
+#include "Camera.h"
 #include <algorithm>
 #include <DxLib.h>
 
@@ -52,14 +56,61 @@ void SpriteSheet::Draw() const
     const int blendMode = m_bIsAddBlend ? DX_BLENDMODE_ADD : DX_BLENDMODE_ALPHA;
     SetDrawBlendMode(blendMode, m_nAlpha);
 
+    // 描画座標と拡大率
+    float drawX = m_fX;
+    float drawY = m_fY;
+    double drawScale = m_dScale;
+
+    // カメラを使用する場合
+    if (mbUseCamera && Master::mpSceneManager != nullptr)
+    {
+        auto* currentScene = Master::mpSceneManager->GetCurrentScene();
+
+        if (currentScene != nullptr)
+        {
+            auto* camera = currentScene->GetCamera();
+
+            if (camera != nullptr)
+            {
+                const VECTOR worldPosition =
+                    VGet(m_fX, m_fY, 0.0f);
+
+                const VECTOR screenPosition =
+                    camera->WorldToScreen(worldPosition);
+
+                drawX = screenPosition.x;
+                drawY = screenPosition.y;
+
+                // カメラのズームを画像サイズにも反映
+                drawScale *= camera->GetZoom();
+            }
+        }
+    }
+
     // 中心指定の有無で描画関数を切り替え
     if (HasCustomPivot())
     {
-        DrawRotaGraph2F(m_fX, m_fY, m_fPivotX, m_fPivotY, m_dScale, m_dAngle, graphHandle, TRUE);
+        DrawRotaGraph2F(
+            drawX,
+            drawY,
+            m_fPivotX,
+            m_fPivotY,
+            drawScale,
+            m_dAngle,
+            graphHandle,
+            TRUE
+        );
     }
     else
     {
-        DrawRotaGraphF(m_fX, m_fY, m_dScale, m_dAngle, graphHandle, TRUE);
+        DrawRotaGraphF(
+            drawX,
+            drawY,
+            drawScale,
+            m_dAngle,
+            graphHandle,
+            TRUE
+        );
     }
 
     // 描画設定を元に戻す

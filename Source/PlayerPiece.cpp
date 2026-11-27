@@ -18,6 +18,9 @@ void PlayerPiece::Init()
 {
 	// -- タグ設定 -- //
 	SetTag(Tag::PLAYER_CELL);
+
+	// 初期状態は単体タイル(マスク0)を設定する
+	SetAutoTileMask(0);
 }
 
 void PlayerPiece::InitComponent()
@@ -39,10 +42,22 @@ void PlayerPiece::SetActive(bool _active)
 
 	if (auto transform = GetModule<Transform>())
 		transform->SetEnabled(_active);
-	
+
 	if (auto graphic = GetModule<Graphic>())
 		graphic->SetEnabled(_active);
 
 	if (auto collider = GetModule<Collider>())
 		collider->SetEnabled(_active);
+}
+
+void PlayerPiece::SetAutoTileMask(int _mask)
+{
+	auto graphic = GetModule<Graphic>();
+	if (!graphic)
+		return;
+
+	const int clampedMask = _mask & 0x0F;
+	const int srcX = (clampedMask % TILE_COLS) * TILE_SIZE;
+	const int srcY = (clampedMask / TILE_COLS) * TILE_SIZE;
+	graphic->SetSourceRect(srcX, srcY, TILE_SIZE, TILE_SIZE);
 }

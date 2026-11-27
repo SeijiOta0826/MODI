@@ -14,6 +14,6 @@ public:
 protected:
 	const char* GetModelFilename() const override
 	{
-		return "Resource/GameObject/StageBlock/Goal.png";
+		return "Resource/Object/Stage/Goal.png";
 	}
 };

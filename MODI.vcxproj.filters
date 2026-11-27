@@ -339,6 +339,9 @@
     <ClCompile Include="Source\PlayerShapeUI.cpp">
       <Filter>ソース ファイル\UI\ShapeUI</Filter>
     </ClCompile>
+    <ClCompile Include="Source\DifficultySelectUI.cpp">
+      <Filter>ソース ファイル\UI</Filter>
+    </ClCompile>
     <ClCompile Include="Source\ConfigUI.cpp">
       <Filter>ソース ファイル\UI\PauseUI</Filter>
     </ClCompile>
@@ -436,6 +439,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Source\EffectHappy.cpp">
+      <Filter>ソース ファイル\Effect\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\EffectSleep.cpp">
       <Filter>ソース ファイル\Effect\Player</Filter>
     </ClCompile>
   </ItemGroup>
@@ -584,6 +590,9 @@
     <ClInclude Include="Source\PlayerPieceUI.h">
       <Filter>ヘッダー ファイル\UI\ShapeUI</Filter>
     </ClInclude>
+    <ClInclude Include="Source\DifficultySelectUI.h">
+      <Filter>ヘッダー ファイル\UI</Filter>
+    </ClInclude>
     <ClInclude Include="Source\ConfigUI.h">
       <Filter>ヘッダー ファイル\UI\PauseUI</Filter>
     </ClInclude>
@@ -693,6 +702,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Source\EffectHappy.h">
+      <Filter>ヘッダー ファイル\Effects\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\EffectSleep.h">
       <Filter>ヘッダー ファイル\Effects\Player</Filter>
     </ClInclude>
   </ItemGroup>

@@ -3,6 +3,12 @@
 // -- Itemデータ -- //
 #include "ItemTable.h"
 
+// -- Manager / Camera -- //
+#include "Master.h"
+#include "SceneManager.h"
+#include "Scene.h"
+#include "Camera.h"
+
 // -- Module -- //
 #include "Transform.h"
 #include "Graphic.h"
@@ -12,6 +18,10 @@
 
 // -- Config -- //
 #include "GameConfig.h"
+
+#include <DxLib.h>
+#include <algorithm>
+#include <cmath>
 
 void Item::InitComponent() {
 	AddModule<Transform>();
@@ -35,13 +45,21 @@ void Item::Update(float _deltaTime) {
 		return;
 
 	switch (mState) {
-	case State::Idle:    UpdateIdle();              break;
+	case State::Idle:    UpdateIdle(_deltaTime);    break;
 	case State::Picking: UpdatePicking(_deltaTime); break;
+	case State::Hidden:  break;
 	}
 	GameObject::Update(_deltaTime);
 }
 
-void Item::UpdateIdle() {
+void Item::Draw() {
+	if (mState == State::Idle) {
+		//DrawAura();
+	}
+	GameObject::Draw();
+}
+
+void Item::UpdateIdle(float _deltaTime) {
 	auto collider = GetModule<Collider>();
 	if (!collider || !collider->IsColliding(Tag::PLAYER_CELL))
 		return;
@@ -49,6 +67,9 @@ void Item::UpdateIdle() {
 	mState = State::Picking;	// IsPicked() が true になる
 	mTimer = 0.0f;
 	collider->SetEnabled(false);
+
+	if (auto transform = GetModule<Transform>())
+		mvBaseScale = transform->GetScale();
 
 	//SoundManager::GetInstance()->PlaySE(SoundManager::SOUND_SE::SE_ITEM_GETTING);
 }
@@ -63,8 +84,26 @@ void Item::UpdatePicking(float _deltaTime) {
 		: 1.3f * (1.0f - (rate - 0.5f) / 0.5f);
 
 	if (auto transform = GetModule<Transform>())
-		transform->SetScale(VGet(scale, scale, 1.0f));
+		transform->SetScale(VGet(mvBaseScale.x * scale, mvBaseScale.y * scale, mvBaseScale.z));
 
+	// memo : 以前は Destroy() していたが、難易度Normalでミスしたときに戻せるよう、消さずに隠すだけにした
 	if (rate >= 1.0f)
-		Destroy();
+	{
+		mState = State::Hidden;
+		if (auto graphic = GetModule<Graphic>())
+			graphic->SetEnabled(false);
+	}
+}
+
+void Item::ResetPick()
+{
+	mState = State::Idle;	// IsPicked() が false に戻る
+	mTimer = 0.0f;
+
+	if (auto transform = GetModule<Transform>())
+		transform->SetScale(mvBaseScale);
+	if (auto graphic = GetModule<Graphic>())
+		graphic->SetEnabled(true);
+	if (auto collider = GetModule<Collider>())
+		collider->SetEnabled(true);
 }
