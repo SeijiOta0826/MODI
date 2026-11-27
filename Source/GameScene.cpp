@@ -42,6 +42,7 @@
 #include <DxLib.h>
 
 // -- 標準ライブラリ -- //
+#include <limits>
 #include <string>
 
 void GameScene::Initialize()
@@ -49,6 +50,7 @@ void GameScene::Initialize()
 	m_goalEffect.Clear();
 	m_dangerEffect.Clear();
 	m_happyEffect.Clear();
+	m_sleepEffect.Clear();
 
 	// -- ステージの生成 -- //
 	auto* stage = new Stage();
@@ -129,6 +131,7 @@ void GameScene::UpdatePlaying(float deltaTime)
 	// 更新処理
 	Scene::Update(deltaTime);
 	UpdateItems();
+	UpdatePlayerEffects(deltaTime, isPaused, isShapeEditing);
 	UpdateDangerEffect();
 	UpdateHappyEffect();
 	UpdateMissPenalty();
@@ -141,9 +144,10 @@ void GameScene::EnterClear()
 {
 	ItemRecord::GetInstance().Commit(Master::mpSceneManager->GetStageNumber(), mPickedItems);
 
-	// クリア演出に入ったら Danger / Happy エフェクトを消す
+	// クリア演出に入ったらPlayer用エフェクトをすべて消す
 	m_dangerEffect.Clear();
 	m_happyEffect.Clear();
+	m_sleepEffect.Clear();
 
 	// ゴールしたプレイヤーの位置を取得
 	const VECTOR playerPosition = mpPlayer->GetModule<Transform>()->GetPosition();
@@ -190,6 +194,9 @@ void GameScene::Draw()
 	// Effekseer版Happyエフェクトを描画
 	m_happyEffect.Draw();
 
+	// Effekseer版Sleepエフェクトを描画
+	m_sleepEffect.Draw();
+
 	// Effekseer版ゴールエフェクトを最前面に描画
 	m_goalEffect.Draw();
 }
@@ -201,6 +208,101 @@ void GameScene::UpdateShapeInput()
 		&& !GetUIManager()->FindUI<PauseUI>()->IsEnabled())
 		mpShapeUI->OnShapeInput();
 }
+
+void GameScene::UpdateHappyEffect()
+{
+	if (mpPlayer == nullptr || mpGoal == nullptr)
+	{
+		m_happyEffect.Clear();
+		return;
+	}
+
+	auto* playerTransform = mpPlayer->GetModule<Transform>();
+	auto* goalTransform = mpGoal->GetModule<Transform>();
+	if (playerTransform == nullptr || goalTransform == nullptr)
+	{
+		m_happyEffect.Clear();
+		return;
+	}
+
+	const VECTOR playerPos = playerTransform->GetPosition();
+	const VECTOR goalPos = goalTransform->GetPosition();
+	const float dx = playerPos.x - goalPos.x;
+	const float dy = playerPos.y - goalPos.y;
+
+	constexpr float happyDistSq = EffectHappy::HAPPY_DISTANCE * EffectHappy::HAPPY_DISTANCE;
+	const bool isNearGoal = (dx * dx + dy * dy <= happyDistSq);
+
+	m_happyEffect.Update(isNearGoal, playerPos.x, playerPos.y);
+}
+
+void GameScene::UpdateDangerEffect()
+{
+
+	if (mpPlayer == nullptr)
+
+	{
+
+		m_dangerEffect.Clear();
+
+		return;
+
+	}
+
+	// Player の座標を取得（private な CalculateCenterOfMass を使わず Transform から取得）
+
+	auto* playerTransform = mpPlayer->GetModule<Transform>();
+
+	if (playerTransform == nullptr)
+
+	{
+
+		m_dangerEffect.Clear();
+
+		return;
+
+	}
+
+	const VECTOR playerPos = playerTransform->GetPosition();
+
+	// ステージ上の全 Spike との距離をチェック（sqrt を省くため2乗で比較）
+
+	bool isNearSpike = false;
+
+	constexpr float dangerDistSq = EffectDanger::DANGER_DISTANCE * EffectDanger::DANGER_DISTANCE;
+
+	for (auto* spike : GetObjectManager()->FindObjects<Spike>())
+
+	{
+
+		auto* transform = spike->GetModule<Transform>();
+
+		if (transform == nullptr)
+
+			continue;
+
+		const VECTOR spikePos = transform->GetPosition();
+
+		const float dx = playerPos.x - spikePos.x;
+
+		const float dy = playerPos.y - spikePos.y;
+
+		if (dx * dx + dy * dy <= dangerDistSq)
+
+		{
+
+			isNearSpike = true;
+
+			break;
+
+		}
+
+	}
+
+	m_dangerEffect.Update(isNearSpike, playerPos.x, playerPos.y);
+
+}
+
 
 void GameScene::UpdateItems()
 {
@@ -283,27 +385,29 @@ void GameScene::UpdateRestartInput(float deltaTime)
 		mpPlayer->Respawn();
 }
 
-void GameScene::UpdateDangerEffect()
+void GameScene::UpdatePlayerEffects(float deltaTime, bool isPaused, bool isShapeEditing)
 {
 	if (mpPlayer == nullptr)
 	{
 		m_dangerEffect.Clear();
+		m_happyEffect.Clear();
+		m_sleepEffect.Clear();
 		return;
 	}
 
-	// Player の座標を取得（private な CalculateCenterOfMass を使わず Transform から取得）
 	auto* playerTransform = mpPlayer->GetModule<Transform>();
 	if (playerTransform == nullptr)
 	{
 		m_dangerEffect.Clear();
+		m_happyEffect.Clear();
+		m_sleepEffect.Clear();
 		return;
 	}
+
 	const VECTOR playerPos = playerTransform->GetPosition();
 
-	// ステージ上の全 Spike との距離をチェック（sqrt を省くため2乗で比較）
-	bool isNearSpike = false;
-	constexpr float dangerDistSq = EffectDanger::DANGER_DISTANCE * EffectDanger::DANGER_DISTANCE;
-
+	// 一番近いSpikeとの距離の2乗を求める
+	float minSpikeDistSq = (std::numeric_limits<float>::max)();
 	for (auto* spike : GetObjectManager()->FindObjects<Spike>())
 	{
 		auto* transform = spike->GetModule<Transform>();
@@ -313,42 +417,72 @@ void GameScene::UpdateDangerEffect()
 		const VECTOR spikePos = transform->GetPosition();
 		const float dx = playerPos.x - spikePos.x;
 		const float dy = playerPos.y - spikePos.y;
+		const float distSq = dx * dx + dy * dy;
 
-		if (dx * dx + dy * dy <= dangerDistSq)
+		if (distSq < minSpikeDistSq)
 		{
-			isNearSpike = true;
-			break;
+			minSpikeDistSq = distSq;
 		}
 	}
 
-	m_dangerEffect.Update(isNearSpike, playerPos.x, playerPos.y);
-}
-
-void GameScene::UpdateHappyEffect()
-{
-	if (mpPlayer == nullptr || mpGoal == nullptr)
+	// Goalとの距離の2乗を求める
+	float goalDistSq = (std::numeric_limits<float>::max)();
+	if (mpGoal != nullptr)
 	{
-		m_happyEffect.Clear();
-		return;
+		if (auto* goalTransform = mpGoal->GetModule<Transform>())
+		{
+			const VECTOR goalPos = goalTransform->GetPosition();
+			const float dx = playerPos.x - goalPos.x;
+			const float dy = playerPos.y - goalPos.y;
+			goalDistSq = dx * dx + dy * dy;
+		}
 	}
 
-	auto* playerTransform = mpPlayer->GetModule<Transform>();
-	auto* goalTransform = mpGoal->GetModule<Transform>();
-	if (playerTransform == nullptr || goalTransform == nullptr)
-	{
-		m_happyEffect.Clear();
-		return;
-	}
-
-	const VECTOR playerPos = playerTransform->GetPosition();
-	const VECTOR goalPos = goalTransform->GetPosition();
-	const float dx = playerPos.x - goalPos.x;
-	const float dy = playerPos.y - goalPos.y;
-
+	constexpr float dangerDistSq = EffectDanger::DANGER_DISTANCE * EffectDanger::DANGER_DISTANCE;
 	constexpr float happyDistSq = EffectHappy::HAPPY_DISTANCE * EffectHappy::HAPPY_DISTANCE;
-	const bool isNearGoal = (dx * dx + dy * dy <= happyDistSq);
 
-	m_happyEffect.Update(isNearGoal, playerPos.x, playerPos.y);
+	const bool isNearSpike = (minSpikeDistSq <= dangerDistSq);
+	const bool isNearGoal = (goalDistSq <= happyDistSq);
+
+	// 複数同時に出さないよう、一番近い1つだけを選ぶ
+	bool showDanger = false;
+	bool showHappy = false;
+
+	if (isNearSpike && isNearGoal)
+	{
+		if (minSpikeDistSq <= goalDistSq)
+			showDanger = true;
+		else
+			showHappy = true;
+	}
+	else if (isNearSpike)
+	{
+		showDanger = true;
+	}
+	else if (isNearGoal)
+	{
+		showHappy = true;
+	}
+
+	m_dangerEffect.Update(showDanger, playerPos.x, playerPos.y);
+	m_happyEffect.Update(showHappy, playerPos.x, playerPos.y);
+
+	// DangerやHappyが表示中、またはポーズや変形画面中はSleepを出さない
+	if (showDanger || showHappy || isPaused || isShapeEditing)
+	{
+		m_sleepEffect.Clear();
+		return;
+	}
+
+	// キーまたはパッドの入力があれば操作中とみなす
+	const auto& input = InputManager::GetInstance();
+	const bool hasAnyInput =
+		(CheckHitKeyAll(DX_CHECKINPUT_KEY | DX_CHECKINPUT_PAD) != 0)
+		|| (input.GetAxis(Axis::Rotation) != 0.0f)
+		|| (input.GetAxis(Axis::MoveX) != 0.0f)
+		|| (input.GetAxis(Axis::MoveY) != 0.0f);
+
+	m_sleepEffect.Update(hasAnyInput, deltaTime, playerPos.x, playerPos.y);
 }
 
 void GameScene::UpdateClearing(float deltaTime)
@@ -404,6 +538,7 @@ void GameScene::Finalize()
 	m_goalEffect.Clear();
 	m_dangerEffect.Clear();
 	m_happyEffect.Clear();
+	m_sleepEffect.Clear();
 
 	if (mpKitchenFrame != nullptr)
 	{

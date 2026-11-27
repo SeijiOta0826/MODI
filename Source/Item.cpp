@@ -3,6 +3,12 @@
 // -- Itemデータ -- //
 #include "ItemTable.h"
 
+// -- Manager / Camera -- //
+#include "Master.h"
+#include "SceneManager.h"
+#include "Scene.h"
+#include "Camera.h"
+
 // -- Module -- //
 #include "Transform.h"
 #include "Graphic.h"
@@ -12,6 +18,10 @@
 
 // -- Config -- //
 #include "GameConfig.h"
+
+#include <DxLib.h>
+#include <algorithm>
+#include <cmath>
 
 void Item::InitComponent() {
 	AddModule<Transform>();
@@ -35,14 +45,21 @@ void Item::Update(float _deltaTime) {
 		return;
 
 	switch (mState) {
-	case State::Idle:    UpdateIdle();              break;
+	case State::Idle:    UpdateIdle(_deltaTime);    break;
 	case State::Picking: UpdatePicking(_deltaTime); break;
 	case State::Hidden:  break;
 	}
 	GameObject::Update(_deltaTime);
 }
 
-void Item::UpdateIdle() {
+void Item::Draw() {
+	if (mState == State::Idle) {
+		//DrawAura();
+	}
+	GameObject::Draw();
+}
+
+void Item::UpdateIdle(float _deltaTime) {
 	auto collider = GetModule<Collider>();
 	if (!collider || !collider->IsColliding(Tag::PLAYER_CELL))
 		return;

@@ -13,31 +13,54 @@
 
 Graphic::Graphic(std::string _filename)
 {
-	// -- 画像ロード -- //
-	mnGraphHandle =
-		Master::mpResource->LoadGraphics(_filename);
+    // -- 画像ロード -- //
+    mnGraphHandle =
+        Master::mpResource->LoadGraphics(_filename);
 
-	// -- 画像のサイズ取得 -- //
-	int size_x;
-	int size_y;
-	GetGraphSize(mnGraphHandle, &size_x, &size_y);
+    // -- 画像のサイズ取得 -- //
+    int size_x;
+    int size_y;
+    GetGraphSize(mnGraphHandle, &size_x, &size_y);
 
-	mvSize.x = static_cast<float>(size_x);
-	mvSize.y = static_cast<float>(size_y);
+    mvSize.x = static_cast<float>(size_x);
+    mvSize.y = static_cast<float>(size_y);
 }
 
 void Graphic::Initialize()
 {
-	// -- GameObjectとしての拡縮値の取得 -- //
-	auto transform = mpGameObject->GetModule<Transform>();
-	if (transform == nullptr)
-		return;
+    // -- GameObjectとしての拡縮値の取得 -- //
+    auto transform = mpGameObject->GetModule<Transform>();
+    if (transform == nullptr)
+        return;
 
-	VECTOR scale = VGet(0.0f, 0.0f, 0.0f);
-	scale.x = GameConfig::CELL_SIZE / mvSize.x;
-	scale.y = GameConfig::CELL_SIZE / mvSize.y;
+    VECTOR scale = VGet(0.0f, 0.0f, 0.0f);
+    scale.x = GameConfig::CELL_SIZE / mvSize.x;
+    scale.y = GameConfig::CELL_SIZE / mvSize.y;
 
-	transform->SetScale(scale);
+    transform->SetScale(scale);
+}
+
+void Graphic::SetSourceRect(int _x, int _y, int _width, int _height)
+{
+    mbUseSourceRect = true;
+    mnSrcX = _x;
+    mnSrcY = _y;
+    mnSrcWidth = _width;
+    mnSrcHeight = _height;
+
+    mvSize.x = static_cast<float>(_width);
+    mvSize.y = static_cast<float>(_height);
+
+    if (mpGameObject != nullptr)
+    {
+        if (auto transform = mpGameObject->GetModule<Transform>())
+        {
+            VECTOR scale = VGet(0.0f, 0.0f, 0.0f);
+            scale.x = GameConfig::CELL_SIZE / mvSize.x;
+            scale.y = GameConfig::CELL_SIZE / mvSize.y;
+            transform->SetScale(scale);
+        }
+    }
 }
 
 void Graphic::Draw()
@@ -69,6 +92,28 @@ void Graphic::Draw()
 
     const auto rotation = transform->GetRotation();
     const auto scale = transform->GetScale();
+
+    if (mbUseSourceRect)
+    {
+        // 指定範囲を切り出して描画する（回転時の1pxズレによる隙間を防ぐためF版を使用）
+        DrawRectRotaGraph3F(
+            drawPosition.x,
+            drawPosition.y,
+            mnSrcX,
+            mnSrcY,
+            mnSrcWidth,
+            mnSrcHeight,
+            static_cast<float>(mnSrcWidth) * 0.5f,
+            static_cast<float>(mnSrcHeight) * 0.5f,
+            scale.x * zoom,
+            scale.y * zoom,
+            rotation.z,
+            mnGraphHandle,
+            TRUE,
+            FALSE
+        );
+        return;
+    }
 
     DrawRotaGraph3(
         static_cast<int>(drawPosition.x),

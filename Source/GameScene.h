@@ -6,6 +6,7 @@
 #include "GoalEffect.h"
 #include "EffectDanger.h"
 #include "EffectHappy.h"
+#include "EffectSleep.h"
 
 class Player;
 class Goal;
@@ -45,6 +46,7 @@ private:
     void UpdateShapeInput();        // 変形キーで変形UIを開閉する
     void UpdateRestartInput(float deltaTime);
     void UpdateItems();             // Item の取得状態を確認する
+    void UpdatePlayerEffects(float deltaTime, bool isPaused, bool isShapeEditing); // Playerの各種エフェクトを更新する
     void UpdateDangerEffect(); //Playerの危険を知らせるUIの表示
     void UpdateHappyEffect();  //PlayerがGoalに近づいたときのUI表示
     void UpdateMissPenalty();       // 難易度Normal : ミスしたらアイテムをリセットする
@@ -72,5 +74,6 @@ private:
 
     EffectDanger m_dangerEffect;
     EffectHappy m_happyEffect;
+    EffectSleep m_sleepEffect;
 
 };

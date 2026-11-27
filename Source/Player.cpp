@@ -212,6 +212,19 @@ void Player::UpdatePieceTransforms()
 
 			pieceTransform->SetPosition(GetCellWorldPosition(c, r));
 			pieceTransform->SetRotation(rotation);
+
+			// 上下左右の接続状態からオートタイル用のマスクを作る
+			int autoTileMask = 0;
+			if (r > 0 && mShape[c][r - 1])
+				autoTileMask |= 1;
+			if (c < N - 1 && mShape[c + 1][r])
+				autoTileMask |= 2;
+			if (r < N - 1 && mShape[c][r + 1])
+				autoTileMask |= 4;
+			if (c > 0 && mShape[c - 1][r])
+				autoTileMask |= 8;
+
+			piece->SetAutoTileMask(autoTileMask);
 		}
 	}
 }
