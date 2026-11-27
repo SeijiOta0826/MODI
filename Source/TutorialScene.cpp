@@ -255,10 +255,16 @@ void TutorialScene::UpdatePause()
     if (mpPauseUI == nullptr)
         return;
 
-    if (InputManager::GetInstance().GetButtonDown(Button::Pause))
-    {
-        mpPauseUI->ToggleEnabled();
-    }
+    if (!InputManager::GetInstance().GetButtonDown(Button::Pause))
+        return;
+
+    // 変形UIを開いている間はポーズを開かない（GameScene::UpdatePauseInput と同じ挙動）
+    // memo : ここで弾かないと、変形UIとPauseUIのオーバーレイが二重に描画される
+    if (mpShapeUI != nullptr && mpShapeUI->IsEnabled())
+        return;
+
+    // ToggleEnabled() ではなく OnPauseInput() を使い、開くたびにメニュー状態・フォーカスを初期化する
+    mpPauseUI->OnPauseInput();
 }
 
 void TutorialScene::UpdateShapeUIToggle()

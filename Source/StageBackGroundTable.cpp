@@ -67,10 +67,10 @@ namespace {
 		{ "PotWithSauce.png",        S2, 0,  500.0f, 280.0f, 0.765f, 0.00f },
 		{ "Tofu.png",                0,  0,  556.0f, 197.0f, 0.461f, 0.00f },	// 常に表示
 		{ "Meat.png",                S0, 0,  458.0f, 313.0f, 1.179f, 0.00f },
-		{ "SlicedGreenOnions.png", S1, 0,  345.0f, 265.0f, 0.555, 0.00f },
+		{ "SlicedGreenOnions.png", S1, 0,  345.0f, 265.0f, 0.555f, 0.00f },
 		{ "MeatPack.png",           S0, 0,  194.0f,  8.0f, 0.720f, 0.00f },
 		{ "GreenOnion.png",         S1, 0,  -55.0f, 355.0f, 0.750f, 0.00f },
-		{ "MeasuringCup.png",       S2, 0,  885.0f, 170.0f, 0.634f, 0.00f },
+		{ "MeasuringCup.png",       S2, 0,  965.0f, 170.0f, 0.634f, 0.00f },	// 鍋と重ならないよう右へ(885→965)
 	};
 
 	// ---- Stage7 揚げ出し豆腐（S0:めんつゆ / S1:ネギ / S2:油） ---- //
