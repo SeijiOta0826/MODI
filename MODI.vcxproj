@@ -94,6 +94,7 @@
     <ClCompile Include="Source\TitleScene.cpp" />
     <ClCompile Include="Source\KitchenToolUI.cpp" />
     <ClCompile Include="Source\KitchenToolTable.cpp" />
+    <ClCompile Include="Source\KitchenToolCatalog.cpp" />
     <ClCompile Include="Source\GameFrameUI.cpp" />
     <ClCompile Include="Source\TutorialScene.cpp" />
     <ClCompile Include="Source\UI.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="Source\TitleScene.h" />
     <ClInclude Include="Source\KitchenToolUI.h" />
     <ClInclude Include="Source\KitchenToolTable.h" />
+    <ClInclude Include="Source\KitchenToolCatalog.h" />
     <ClInclude Include="Source\GameFrameUI.h" />
     <ClInclude Include="Source\UITypewriterText.h" />
     <ClInclude Include="Source\UI.h" />

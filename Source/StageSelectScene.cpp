@@ -17,9 +17,11 @@
 #include "FontManager.h"
 
 #include "ScreenConfig.h"
+#include "KitchenToolCatalog.h"
 
 #include <algorithm>	// std::min
 #include <cstring>		// std::strlen
+#include <vector>
 
 namespace
 {
@@ -45,7 +47,8 @@ namespace
 	constexpr int LAYER_PANEL = 3;		// アイテム枠(Circle)
 	constexpr int LAYER_CONTENT = 4;	// 料理名・料理画像・アイテム画像
 	constexpr int LAYER_FOCUS = 5;		// フォーカス枠(料理パネルの中身より上)
-	constexpr int LAYER_HUD = 6;		// タイトル・ESC案内(難易度選択のポップアップ(20~)より下)
+	constexpr int LAYER_KITCHEN_TOOL = 10;	// 調理器具(10, 11, 12... と器具の数だけ使う。料理枠より手前)
+	constexpr int LAYER_HUD = 19;		// タイトル・ESC案内(器具より手前 / 難易度選択のポップアップ(20~)より下)
 
 	// -- レイアウト座標系 -- //
 	// 位置・大きさはすべて「RecipeBook.png(942×527)上のピクセル座標」で書き、
@@ -88,6 +91,19 @@ namespace
 	constexpr float HUD_MARGIN_Y = 50.0f;		// 画面下端から文字の中心まで
 	constexpr float HUD_GAP = 12.0f;			// キー画像と文字の間
 	constexpr float ESC_KEY_HEIGHT = 52.0f;		// キー画像を表示する高さ(元画像 50×26 の2倍)
+
+	// -- 調理器具 : ここも画面のピクセル座標 -- //
+	// 料理枠(画面のおよそ x:374〜1534 / y:244〜)にかからない、本の周りの余白に置く
+	const std::vector<KitchenToolPlacement> KITCHEN_TOOLS =
+	{
+		{ KitchenToolType::MeasuringCup,		VGet( 150.0f, 130.0f, 0.0f), -0.20f, 0.75f },	// 左上
+		{ KitchenToolType::Otama,				VGet( 150.0f, 560.0f, 0.0f), -0.10f, 0.80f },	// 左
+		{ KitchenToolType::MeasuringSpoon,		VGet( 170.0f, 930.0f, 0.0f),  0.30f, 0.75f },	// 左下
+		{ KitchenToolType::CookingChopsticks,	VGet( 520.0f,  95.0f, 0.0f),  1.30f, 0.70f },	// 上(タイトルの左)
+		{ KitchenToolType::WoodenSpatula,		VGet(1430.0f,  95.0f, 0.0f),  0.80f, 0.70f },	// 上(タイトルの右)
+		{ KitchenToolType::FryingPan,			VGet(1780.0f, 340.0f, 0.0f),  0.20f, 0.80f },	// 右上
+		{ KitchenToolType::KitchenKnife,		VGet(1740.0f, 690.0f, 0.0f), -1.30f, 0.80f },	// 右
+	};
 }
 
 void StageSelectScene::Initialize()
@@ -96,6 +112,7 @@ void StageSelectScene::Initialize()
 	CreateRecipeBook();
 	CreateTitle();
 	CreateEscHud();
+	CreateKitchenTools();
 
 	for (int stage = 1; stage <= GameConfig::STAGE_COUNT; ++stage)
 		CreateStageCard(stage);
@@ -122,9 +139,17 @@ void StageSelectScene::Initialize()
 
 void StageSelectScene::Update(float _deltaTime)
 {
+	// -- 調理器具(ステージを選んでいる間だけ、新しく掴める) -- //
+	// 料理枠より手前に描くので、器具の上でのクリックは器具が優先される
+	mKitchenTools.Update(_deltaTime, mState == State::SelectStage);
+
 	switch (mState)
 	{
-	case State::SelectStage:      UpdateSelectStage();      break;
+	case State::SelectStage:
+		// 器具を掴んだ / 持っている間は、料理枠のクリックとして扱わない
+		if (!mKitchenTools.IsDragging())
+			UpdateSelectStage();
+		break;
 	case State::SelectDifficulty: UpdateSelectDifficulty(); break;
 	case State::Starting:         break;	// シーン切り替え待ち
 	}
@@ -210,6 +235,7 @@ void StageSelectScene::Finalize()
 	mpDishPanels.fill(nullptr);
 	mpFocus = nullptr;
 	mpDifficultyUI = nullptr;
+	mKitchenTools.Clear();
 
 	Scene::Finalize();
 }
@@ -312,6 +338,14 @@ void StageSelectScene::CreateEscHud()
 	));
 
 	key->SetEnabled(true);
+}
+
+void StageSelectScene::CreateKitchenTools()
+{
+	mKitchenTools.SetBaseLayer(LAYER_KITCHEN_TOOL);
+
+	for (const auto& placement : KITCHEN_TOOLS)
+		mKitchenTools.AddTool(GetUIManager(), KitchenToolCatalog::MakeDesc(placement));
 }
 
 void StageSelectScene::CreateStageCard(int _stage)

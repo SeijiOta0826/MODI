@@ -243,6 +243,9 @@
     <ClCompile Include="Source\KitchenToolTable.cpp">
       <Filter>ソース ファイル\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Source\KitchenToolCatalog.cpp">
+      <Filter>ソース ファイル\UI</Filter>
+    </ClCompile>
     <ClCompile Include="Source\GameFrameUI.cpp">
       <Filter>ソース ファイル\UI</Filter>
     </ClCompile>
@@ -501,6 +504,9 @@
       <Filter>ヘッダー ファイル\UI</Filter>
     </ClInclude>
     <ClInclude Include="Source\KitchenToolTable.h">
+      <Filter>ヘッダー ファイル\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\KitchenToolCatalog.h">
       <Filter>ヘッダー ファイル\UI</Filter>
     </ClInclude>
     <ClInclude Include="Source\GameFrameUI.h">

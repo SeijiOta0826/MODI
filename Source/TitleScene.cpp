@@ -14,6 +14,7 @@
 #include "GameProgress.h"	// IsTutorialCleared()
 
 #include "ScreenConfig.h"	// 背景画像の拡縮
+#include "KitchenToolCatalog.h"
 
 #include <algorithm>	// std::max
 #include <vector>
@@ -29,31 +30,16 @@ namespace
 
 	const std::string KITCHEN_TOOL_DIR = "Resource/UI/Title/kitchenTools/";
 
-	// -- 動かせる調理器具の配置表 -- //
-	// position はスクリーン座標(画像の中心)、circles は元画像のピクセル単位(画像中心から)
-	const std::vector<KitchenToolDesc> KITCHEN_TOOLS =
+	// -- 動かせる調理器具の配置(画像・当たり判定・基準の大きさは KitchenToolCatalog) -- //
+	const std::vector<KitchenToolPlacement> KITCHEN_TOOLS =
 	{
-		{ KITCHEN_TOOL_DIR + "Measuring Cup.png",		VGet( 200.0f, 160.0f, 0.0f), 0.90f, -0.20f,
-			{ { -55.0f, -5.0f, 185.0f }, { 150.0f, 40.0f, 60.0f }, { 172.0f, 140.0f, 50.0f } } },
-
-		{ KITCHEN_TOOL_DIR + "Wooden Spatula.png",		VGet( 390.0f, 420.0f, 0.0f), 1.40f,  0.55f,
-			{ { 90.0f, -100.0f, 55.0f }, { 35.0f, -40.0f, 40.0f }, { -20.0f, 20.0f, 28.0f }, { -70.0f, 70.0f, 28.0f }, { -125.0f, 122.0f, 28.0f } } },
-
-		{ KITCHEN_TOOL_DIR + "Otama.png",				VGet( 120.0f, 790.0f, 0.0f), 1.20f, -0.25f,
-			{ { -98.0f, 156.0f, 70.0f }, { -25.0f, 95.0f, 26.0f }, { 20.0f, 10.0f, 26.0f }, { 65.0f, -75.0f, 26.0f }, { 110.0f, -160.0f, 26.0f }, { 135.0f, -205.0f, 26.0f } } },
-
-		{ KITCHEN_TOOL_DIR + "Measuring spoon.png",		VGet( 400.0f, 915.0f, 0.0f), 0.85f,  0.40f,
-			{ { -180.0f, -80.0f, 45.0f }, { -60.0f, -60.0f, 50.0f }, { -130.0f, 30.0f, 60.0f }, { 0.0f, 140.0f, 95.0f }, { 80.0f, -80.0f, 40.0f }, { 150.0f, -160.0f, 65.0f } } },
-
-		{ KITCHEN_TOOL_DIR + "flyingpan.png",			VGet(1680.0f, 230.0f, 0.0f), 1.10f, -0.50f,
-			{ { 27.0f, 101.0f, 126.0f }, { -40.0f, -20.0f, 22.0f }, { -65.0f, -65.0f, 24.0f }, { -95.0f, -115.0f, 24.0f }, { -125.0f, -165.0f, 24.0f }, { -150.0f, -205.0f, 24.0f } } },
-
-		// 包丁・菜箸は高解像度の画像なので、拡縮を小さくして表示サイズを合わせている
-		{ KITCHEN_TOOL_DIR + "Kitchen Knife.png",		VGet(1660.0f, 590.0f, 0.0f), 0.23f, -0.10f,
-			{ { 949.0f, 369.0f, 176.0f }, { 549.0f, 251.0f, 176.0f }, { 203.0f, 11.0f, 207.0f }, { -183.0f, -136.0f, 203.0f }, { -572.0f, -279.0f, 178.0f }, { -954.0f, -438.0f, 176.0f } } },
-
-		{ KITCHEN_TOOL_DIR + "Cooking chopsticks.png",	VGet(1730.0f, 870.0f, 0.0f), 0.28f,  0.45f,
-			{ { 290.0f, -837.0f, 129.0f }, { 193.0f, -550.0f, 129.0f }, { 97.0f, -263.0f, 129.0f }, { 0.0f, 24.0f, 129.0f }, { -96.0f, 311.0f, 129.0f }, { -230.0f, 770.0f, 210.0f } } },
+		{ KitchenToolType::MeasuringCup,		VGet( 200.0f, 160.0f, 0.0f), -0.20f },
+		{ KitchenToolType::WoodenSpatula,		VGet( 390.0f, 420.0f, 0.0f),  0.55f },
+		{ KitchenToolType::Otama,				VGet( 120.0f, 790.0f, 0.0f), -0.25f },
+		{ KitchenToolType::MeasuringSpoon,		VGet( 400.0f, 915.0f, 0.0f),  0.40f },
+		{ KitchenToolType::FryingPan,			VGet(1680.0f, 230.0f, 0.0f), -0.50f },
+		{ KitchenToolType::KitchenKnife,		VGet(1660.0f, 590.0f, 0.0f), -0.10f },
+		{ KitchenToolType::CookingChopsticks,	VGet(1730.0f, 870.0f, 0.0f),  0.45f },
 	};
 
 	// 動かない画像UIを生成する(座標は画面中央からのずれ)
@@ -114,8 +100,8 @@ void TitleScene::CreateKitchenTools()
 {
 	mKitchenTools.SetBaseLayer(LAYER_KITCHEN_TOOL);
 
-	for (const auto& desc : KITCHEN_TOOLS)
-		mKitchenTools.AddTool(GetUIManager(), desc);
+	for (const auto& placement : KITCHEN_TOOLS)
+		mKitchenTools.AddTool(GetUIManager(), KitchenToolCatalog::MakeDesc(placement));
 }
 
 void TitleScene::CreateButtons()
