@@ -57,7 +57,7 @@ void PlayerPiece::SetAutoTileMask(int _mask)
 		return;
 
 	const int clampedMask = _mask & 0x0F;
-	const int srcX = (clampedMask % TILE_COLS) * TILE_SIZE;
-	const int srcY = (clampedMask / TILE_COLS) * TILE_SIZE;
+	const int srcX = (clampedMask % TILE_COLS) * TILE_STRIDE + TILE_PADDING;
+	const int srcY = (clampedMask / TILE_COLS) * TILE_STRIDE + TILE_PADDING;
 	graphic->SetSourceRect(srcX, srcY, TILE_SIZE, TILE_SIZE);
 }

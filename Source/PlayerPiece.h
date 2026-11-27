@@ -35,6 +35,8 @@ protected:
 	}
 private:
 	static constexpr int TILE_SIZE = 100;
+	static constexpr int TILE_PADDING = 2;
+	static constexpr int TILE_STRIDE = TILE_SIZE + TILE_PADDING * 2;
 	static constexpr int TILE_COLS = 4;
 
 	Player* mpPlayer = nullptr;	// ハブとなるPlayerのポインタ
