@@ -7,10 +7,10 @@ namespace {
 
 	// ---- Stage1 冷奴（S0:ネギ / S1:生姜 / S2:醤油） ---- //
 	constexpr BgLayerDef CHILLED_TOFU[] = {
-		{ "Tofu.png",                         0,  S2, 456.0f, 255.0f, 0.980f, 0.00f },	// 醤油なし
-		{ "TofuDrizzledWithSoySauce.png", S2, 0,  457.0f, 258.0f, 1.045f, 0.00f },	// 醤油あり
-		{ "GreenOnion.png",                  S0, 0,  446.0f, 185.0f, 0.180f, 0.00f },
-		{ "Ginger.png",                       S1, 0,  526.0f, 215.0f, 0.129f, 0.00f },
+		{ "Tofu.png",                         0,  S2, 686.0f, 425.0f, 0.980f, 0.00f },	// 醤油なし
+		{ "TofuDrizzledWithSoySauce.png", S2, 0,  687.0f, 428.0f, 1.045f, 0.00f },	// 醤油あり
+		{ "GreenOnion.png",                  S0, 0,  676.0f, 355.0f, 0.300f, 0.00f },
+		{ "Ginger.png",                       S1, 0,  756.0f, 385.0f, 0.129f, 0.00f },
 	};
 
 	// ---- Stage2 湯豆腐（S0:昆布 / S1:ネギ / S2:ポン酢） ---- //
