@@ -84,7 +84,7 @@ namespace
 	constexpr float DISH_IMAGE_HEIGHT = 75.0f;
 
 	constexpr float ITEM_PANEL_SIZE = 50.0f;
-	constexpr float ITEM_IMAGE_SIZE = 50.0f;
+	constexpr float ITEM_IMAGE_SIZE = 28.0f;	// 枠(Circle)の内側の白い円に収まる大きさ
 
 	// -- ESC案内(HUD) : ここだけ画面のピクセル座標 -- //
 	constexpr float HUD_MARGIN_X = 40.0f;		// 画面右端からの余白
