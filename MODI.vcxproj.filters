@@ -127,21 +127,6 @@
     <Filter Include="ソース ファイル\UI\ShapeUI">
       <UniqueIdentifier>{3ef6d2cb-3fa3-456c-a048-9a99429e0ef2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ソース ファイル\Effect">
-      <UniqueIdentifier>{2046ad7d-2139-43c4-961b-24e980b2c2d0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Effect\Player">
-      <UniqueIdentifier>{5c0658fe-c124-43b2-a356-405f2c70a273}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Effect\Event">
-      <UniqueIdentifier>{3c197103-3079-4abf-be23-9eaa36370605}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Effect\UI">
-      <UniqueIdentifier>{7eed68c5-78d8-4db8-a7cd-042211c2c2dd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\Effect\Stage">
-      <UniqueIdentifier>{4e27cb49-854f-4e4b-abf0-1ca42296c392}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ソース ファイル\UI\StageBackGround">
       <UniqueIdentifier>{a3a540af-3532-4b6e-8b73-18a29f4ad1a7}</UniqueIdentifier>
     </Filter>
@@ -189,6 +174,21 @@
     </Filter>
     <Filter Include="ヘッダー ファイル\Camera">
       <UniqueIdentifier>{fed7464b-6434-4fe5-a408-7d6aea183347}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Effects">
+      <UniqueIdentifier>{2046ad7d-2139-43c4-961b-24e980b2c2d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Effects\Player">
+      <UniqueIdentifier>{5c0658fe-c124-43b2-a356-405f2c70a273}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Effects\Event">
+      <UniqueIdentifier>{3c197103-3079-4abf-be23-9eaa36370605}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Effects\UI">
+      <UniqueIdentifier>{7eed68c5-78d8-4db8-a7cd-042211c2c2dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Effects\Stage">
+      <UniqueIdentifier>{4e27cb49-854f-4e4b-abf0-1ca42296c392}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -307,7 +307,7 @@
       <Filter>ソース ファイル\Manager</Filter>
     </ClCompile>
     <ClCompile Include="Source\SpriteSheet.cpp">
-      <Filter>ソース ファイル\Effect</Filter>
+      <Filter>ソース ファイル\Effects</Filter>
     </ClCompile>
     <ClCompile Include="Source\Player.cpp">
       <Filter>ソース ファイル\GameObject\Character\Player</Filter>
@@ -382,19 +382,19 @@
       <Filter>ソース ファイル\UI\UIModule</Filter>
     </ClCompile>
     <ClCompile Include="Source\EffectFall.cpp">
-      <Filter>ソース ファイル\Effect\Player</Filter>
+      <Filter>ソース ファイル\Effects\Player</Filter>
     </ClCompile>
     <ClCompile Include="Source\EffectRespawn.cpp">
-      <Filter>ソース ファイル\Effect\Player</Filter>
+      <Filter>ソース ファイル\Effects\Player</Filter>
     </ClCompile>
     <ClCompile Include="Source\EffectTrans.cpp">
-      <Filter>ソース ファイル\Effect\Player</Filter>
+      <Filter>ソース ファイル\Effects\Player</Filter>
     </ClCompile>
     <ClCompile Include="Source\EffectClick.cpp">
-      <Filter>ソース ファイル\Effect\UI</Filter>
+      <Filter>ソース ファイル\Effects\UI</Filter>
     </ClCompile>
     <ClCompile Include="Source\EffectSteam.cpp">
-      <Filter>ソース ファイル\Effect\Stage</Filter>
+      <Filter>ソース ファイル\Effects\Stage</Filter>
     </ClCompile>
     <ClCompile Include="Source\StageBackGround.cpp">
       <Filter>ソース ファイル\UI\StageBackGround</Filter>
@@ -433,7 +433,7 @@
       <Filter>ソース ファイル\Scene</Filter>
     </ClCompile>
     <ClCompile Include="Source\GoalEffect.cpp">
-      <Filter>ソース ファイル\Effect\Event</Filter>
+      <Filter>ソース ファイル\Effects\Event</Filter>
     </ClCompile>
     <ClCompile Include="Source\Camera.cpp">
       <Filter>ソース ファイル\Camera</Filter>
@@ -444,17 +444,17 @@
     <ClCompile Include="Source\EffekseerManager.cpp">
       <Filter>ソース ファイル\Manager</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ClearSequence.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\EffectDanger.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="Source\EffectHappy.cpp">
-      <Filter>ソース ファイル\Effect\Player</Filter>
+      <Filter>ソース ファイル\Effects\Player</Filter>
     </ClCompile>
     <ClCompile Include="Source\EffectSleep.cpp">
-      <Filter>ソース ファイル\Effect\Player</Filter>
+      <Filter>ソース ファイル\Effects\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ClearSequence.cpp">
+      <Filter>ソース ファイル\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\EffectDanger.cpp">
+      <Filter>ソース ファイル\Effects\Player</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -719,16 +719,16 @@
     <ClInclude Include="Source\EffekseerManager.h">
       <Filter>ヘッダー ファイル\Manager</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ClearSequence.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\EffectDanger.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Source\EffectHappy.h">
       <Filter>ヘッダー ファイル\Effects\Player</Filter>
     </ClInclude>
     <ClInclude Include="Source\EffectSleep.h">
+      <Filter>ヘッダー ファイル\Effects\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ClearSequence.h">
+      <Filter>ヘッダー ファイル\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\EffectDanger.h">
       <Filter>ヘッダー ファイル\Effects\Player</Filter>
     </ClInclude>
   </ItemGroup>
